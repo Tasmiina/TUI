@@ -1,0 +1,18 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\..\..\..\..\WoW\Data\Interface\AddOns\Blizzard_SharedXML\UI.xsd">
+
+    <!--  Grouping frame orderign all children on a single axis and resizes the children -->
+    <Frame name="TUI_GroupFrame" inherits="ResizeLayoutFrame" virtual="true" mixin="TUI_GroupFrameMixin">
+        <!--
+        <KeyValues>
+            <KeyValue key="childSizeX" value="200" type="number"/>
+            <KeyValue key="childSizeY" value="40" type="number"/>
+
+            <KeyValue key="spacing" value="5" type="number"/>
+            
+            <KeyValue key="horizontal" value="false" type="boolean"/>
+            <KeyValue key="positiveDirection" value="false" type="boolean"/>
+        </KeyValues>
+        -->
+    </Frame>
+</Ui>

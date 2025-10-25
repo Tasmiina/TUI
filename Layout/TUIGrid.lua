@@ -102,12 +102,15 @@ end
 function TUI_GridFrameMixin:CacheLayoutSettings(layoutChildren)
     self.oldGridSettings = {
 		layoutChildren = layoutChildren;
-        childXPadding = self.childXPadding;
-		childYPadding = self.childYPadding;
-		isHorizontal = self.isHorizontal;
-		stride = self.stride;
-		layoutFramesGoingRight = self.layoutFramesGoingRight;
-		layoutFramesGoingUp = self.layoutFramesGoingUp;
+        firstRowLimit = self.firstRowLimit;
+		firstRowSizeX = self.firstRowSizeX;
+		firstRowSizeY = self.firstRowSizeY;
+		rowLimit = self.rowLimit;
+		rowSizeX = self.rowSizeX;
+		rowSizeY = self.rowSizeY;
+		spacingX = self.spacingX;
+		spacingY = self.spacingY;
+		growDirectionUp = self.growDirectionUp;
     };
 end
 
