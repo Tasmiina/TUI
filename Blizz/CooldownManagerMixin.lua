@@ -335,7 +335,7 @@ function TUI_UtilityCooldownViewerMixin:OnEvent(event, ...)
 	CooldownManagerMixin.OnEvent(self, event, ...);
 end
 
-TUI_BarCooldownViewerMixin = CreateFromMixins(CooldownManagerMixin, GridLayoutFrameMixin);
+TUI_BarCooldownViewerMixin = CreateFromMixins(CooldownManagerMixin);
 
 function TUI_BarCooldownViewerMixin:OnLoad()
 	CooldownManagerMixin.OnLoad(self);
@@ -371,7 +371,7 @@ function TUI_BarCooldownViewerMixin:SetBarContent(barContent)
 	end
 end
 
-TUI_BuffCooldownViewerMixin = CreateFromMixins(CooldownManagerMixin, GridLayoutFrameMixin);
+TUI_BuffCooldownViewerMixin = CreateFromMixins(CooldownManagerMixin);
 
 function TUI_BuffCooldownViewerMixin:OnLoad()
 	CooldownManagerMixin.OnLoad(self);

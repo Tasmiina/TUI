@@ -7,6 +7,8 @@ Blizz/CooldownManagerMixin.lua
 
 Layout/TUIGrid.lua
 Layout/TUIGrid.xml
+Layout/TUIGroup.lua
+Layout/TUIGroup.xml
 
 TUI.xml
 

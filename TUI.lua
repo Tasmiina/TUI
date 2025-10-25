@@ -413,6 +413,8 @@ function TUI:UpdateLayout()
     self.main_cooldowns.spacingY = TUI.db.profile.main_cooldowns.spacing_y
     self.main_cooldowns.growDirectionUp = TUI.db.profile.main_cooldowns.grow_direction_up
 
+    self.main_cooldowns.alwaysUpdateLayout = true
+
     self.main_cooldowns:Layout()
     self.main_cooldowns:Show()
 
@@ -431,10 +433,13 @@ function TUI:UpdateLayout()
     self.util_cooldowns.spacingY = TUI.db.profile.util_cooldowns.spacing_y
     self.util_cooldowns.growDirectionUp = TUI.db.profile.util_cooldowns.grow_direction_up
 
+    self.util_cooldowns.alwaysUpdateLayout = true
+
     self.util_cooldowns:Layout()
     self.util_cooldowns:Show()
 
     self.aura_buffs:SetPoint(TUI.db.profile.aura_buffs.anchor, TUI.db.profile.aura_buffs.anchor_frame, TUI.db.profile.aura_buffs.anchor_to, TUI.db.profile.aura_buffs.pos_x, TUI.db.profile.aura_buffs.pos_y)
+    self.aura_buffs:Layout()
 
     self.bars:SetPoint(TUI.db.profile.bar_buffs.anchor, TUI.db.profile.bar_buffs.anchor_frame, TUI.db.profile.bar_buffs.anchor_to, TUI.db.profile.bar_buffs.pos_x, TUI.db.profile.bar_buffs.pos_y)
 
