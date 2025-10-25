@@ -1,0 +1,22 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\..\..\..\..\WoW\Data\Interface\AddOns\Blizzard_SharedXML\UI.xsd">
+
+    <Frame name="TUI_GridFrame" inherits="ResizeLayoutFrame" virtual="true" mixin="TUI_GridFrameMixin">
+        <!--
+        <KeyValues>
+            <KeyValue key="firstRowLimit" value="9" type="number"/>
+            <KeyValue key="firstRowSizeX" value="36" type="number"/>
+            <KeyValue key="firstRowSizeY" value="28" type="number"/>
+
+            <KeyValue key="rowLimit" value="9" type="number"/>
+            <KeyValue key="rowSizeX" value="34" type="number"/>
+            <KeyValue key="rowSizeY" value="26" type="number"/>
+
+            <KeyValue key="spacingX" value="3" type="number"/>
+            <KeyValue key="spacingY" value="2" type="number"/>
+            
+            <KeyValue key="growDirectionUp" value="false" type="boolean"/>
+        </KeyValues>
+        -->
+    </Frame>
+</Ui>

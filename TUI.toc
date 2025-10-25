@@ -1,0 +1,17 @@
+## Interface: 110205
+## SavedVariables: TUI_DB
+
+Embeds.xml
+
+Blizz/CooldownManagerMixin.lua
+
+Layout/TUIGrid.lua
+Layout/TUIGrid.xml
+
+TUI.xml
+
+Bars/TUICastBar.lua
+Bars/TUIResourceBar.lua
+Bars/TUISecondaryResourceBar.lua
+
+TUI.lua
