@@ -49,14 +49,20 @@ local defaults = {
             pos_y = -30,
             anchor_frame = "TUI_UtilCooldowns",
             anchor_to = "BOTTOM",
-            anchor = "TOP"
+            anchor = "TOP",
+            child_width = 220,
+            child_height = 20,
+            child_spacing = 10
         },
         aura_buffs = {
             pos_x = 0,
             pos_y = 10,
             anchor_frame = "TUI_Castbar",
             anchor_to = "TOP",
-            anchor = "BOTTOM"
+            anchor = "BOTTOM",
+            child_width = 40,
+            child_height = 40,
+            child_spacing = 4
         },
         cast_bar = {
             anchor_frame = "TUI_SecondaryResourceBar",
@@ -367,6 +373,26 @@ local function CreateFrameOptions(name, data)
         }
     end
 
+    if extra.child_width then
+        group.args.child_width = {
+            type = "range", name="Child Height", order = 15,
+            min = 1, max = 128, step = 1,
+            get = function() return TUI.db.profile[data].child_width end,
+            set = SetAndUpdate(function(val) TUI.db.profile[data].child_width = val end),
+        }
+        group.args.child_height = {
+            type = "range", name="Child Height", order = 16,
+            min = 1, max = 128, step = 1,
+            get = function() return TUI.db.profile[data].child_height end,
+            set = SetAndUpdate(function(val) TUI.db.profile[data].child_height = val end),
+        }
+        group.args.child_spacing = {
+            type = "range", name="Spacing", order = 17,
+            min = -128, max = 128, step = 1,
+            get = function() return TUI.db.profile[data].child_spacing end,
+            set = SetAndUpdate(function(val) TUI.db.profile[data].child_spacing = val end),
+        }
+    end
     return group
 end
 
@@ -439,9 +465,20 @@ function TUI:UpdateLayout()
     self.util_cooldowns:Show()
 
     self.aura_buffs:SetPoint(TUI.db.profile.aura_buffs.anchor, TUI.db.profile.aura_buffs.anchor_frame, TUI.db.profile.aura_buffs.anchor_to, TUI.db.profile.aura_buffs.pos_x, TUI.db.profile.aura_buffs.pos_y)
+
+    self.aura_buffs.childSizeX = TUI.db.profile.aura_buffs.child_width
+    self.aura_buffs.childSizeY = TUI.db.profile.aura_buffs.child_height
+    self.aura_buffs.spacing = TUI.db.profile.aura_buffs.child_spacing
+
     self.aura_buffs:Layout()
 
     self.bars:SetPoint(TUI.db.profile.bar_buffs.anchor, TUI.db.profile.bar_buffs.anchor_frame, TUI.db.profile.bar_buffs.anchor_to, TUI.db.profile.bar_buffs.pos_x, TUI.db.profile.bar_buffs.pos_y)
+
+    self.bars.childSizeX = TUI.db.profile.bar_buffs.child_width
+    self.bars.childSizeY = TUI.db.profile.bar_buffs.child_height
+    self.bars.spacing = TUI.db.profile.bar_buffs.child_spacing
+
+    self.bars:Layout()
 
     self.cast_bar:SetSize(TUI.db.profile.cast_bar.width, TUI.db.profile.cast_bar.height)
     self.cast_bar:SetPoint(TUI.db.profile.cast_bar.anchor, TUI.db.profile.cast_bar.anchor_frame, TUI.db.profile.cast_bar.anchor_to, TUI.db.profile.cast_bar.pos_x, TUI.db.profile.cast_bar.pos_y)
