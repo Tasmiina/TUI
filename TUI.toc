@@ -4,6 +4,7 @@
 Embeds.xml
 
 Blizz/CooldownManagerMixin.lua
+Blizz/TUI_AuraBuffItemMixin.lua
 
 Layout/TUIGrid.lua
 Layout/TUIGrid.xml

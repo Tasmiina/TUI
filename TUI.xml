@@ -143,7 +143,7 @@
 		</Scripts>
 	</Frame>
 
-	<Frame name="CooldownViewerBuffItemTemplate" mixin="CooldownViewerBuffIconItemMixin" virtual="true">
+	<Frame name="CooldownViewerBuffItemTemplate" mixin="TUI_AuraBuffItemMixin" virtual="true">
 		<Size x="32" y="32"/>
 		<KeyValues>
 			<KeyValue key="allowHideWhenInactive" value="true" type="boolean"/>
@@ -166,22 +166,25 @@
 			</Layer>
 		</Layers>
 		<Frames>
-			<Cooldown parentKey="Cooldown" setAllPoints="true">
-				<SwipeTexture>
-					<Color r="0" g="0" b="0" a="0.8"/>
-				</SwipeTexture>
-				<EdgeTexture file="Interface\Cooldown\UI-HUD-ActionBar-SecondaryCooldown"/>
-				<BlingTexture file="Interface\Cooldown\star4">
-					<Color r="0.3" g="0.6" b="1" a="0.2"/>
-				</BlingTexture>
-			</Cooldown>
+			<!-- Text-only cooldown display instead of swipe -->
+			<Frame parentKey="CooldownText" setAllPoints="true">
+				<Layers>
+					<Layer level="OVERLAY">
+						<FontString parentKey="Text" font="Interface\AddOns\TUI\Media\avantguard.ttf" justifyH="CENTER" justifyV="CENTER" outline="THICK">
+							<Anchors>
+								<Anchor point="CENTER"/>
+							</Anchors>
+                            <FontHeight>
+                                <AbsValue val="16"/>
+                            </FontHeight>
+						</FontString>
+					</Layer>
+				</Layers>
+			</Frame>
 			<Frame parentKey="Applications" setAllPoints="true">
 				<Layers>
 					<Layer level="OVERLAY">
 						<FontString parentKey="Applications" font="Interface\AddOns\TUI\Media\avantguard.ttf" justifyH="CENTER" justifyV="MIDDLE" outline="THICK">
-							<Anchors>
-								<Anchor point="BOTTOM" x="0" y="-8"/>
-							</Anchors>
                             <FontHeight>
                                 <AbsValue val="14"/>
                             </FontHeight>
