@@ -36,7 +36,7 @@
 			<Frame parentKey="ChargeCount" setAllPoints="true">
 				<Layers>
 					<Layer level="OVERLAY">
-						<FontString parentKey="Current" font="Interface\AddOns\NaowhUI\Core\Media\Fonts\Naowh.ttf" justifyH="CENTER" justifyV="MIDDLE" outline="THICK">
+						<FontString parentKey="Current" font="Interface\AddOns\TUI\Media\avantguard.ttf" justifyH="CENTER" justifyV="MIDDLE" outline="THICK">
 							<Anchors>
 								<Anchor point="BOTTOM" x="0" y="-8"/>
 							</Anchors>
@@ -108,7 +108,7 @@
 			<Frame parentKey="ChargeCount" setAllPoints="true">
 				<Layers>
 					<Layer level="OVERLAY">
-						<FontString parentKey="Current" font="Interface\AddOns\NaowhUI\Core\Media\Fonts\Naowh.ttf" justifyH="CENTER" justifyV="MIDDLE" outline="THICK">
+						<FontString parentKey="Current" font="Interface\AddOns\TUI\Media\avantguard.ttf" justifyH="CENTER" justifyV="MIDDLE" outline="THICK">
 							<Anchors>
 								<Anchor point="BOTTOM" x="0" y="-8"/>
 							</Anchors>
@@ -178,7 +178,7 @@
 			<Frame parentKey="Applications" setAllPoints="true">
 				<Layers>
 					<Layer level="OVERLAY">
-						<FontString parentKey="Applications" font="Interface\AddOns\NaowhUI\Core\Media\Fonts\Naowh.ttf" justifyH="CENTER" justifyV="MIDDLE" outline="THICK">
+						<FontString parentKey="Applications" font="Interface\AddOns\TUI\Media\avantguard.ttf" justifyH="CENTER" justifyV="MIDDLE" outline="THICK">
 							<Anchors>
 								<Anchor point="BOTTOM" x="0" y="-8"/>
 							</Anchors>
