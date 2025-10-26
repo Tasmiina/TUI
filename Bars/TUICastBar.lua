@@ -8,7 +8,7 @@ function TUICastBar:new(name, parent)
     self.frame = CreateFrame("StatusBar", name or "TUICastBarFrame", parent or UIParent)
     self.frame:SetSize(200, 20)
     self.frame:SetPoint("CENTER", 0, -200)
-    self.frame:SetStatusBarTexture("Interface\\AddOns\\SharedMedia\\statusbar\\Melli.tga")
+    self.frame:SetStatusBarTexture("Interface\\AddOns\\TUI\\Media\\Flat.tga")
     self.frame:SetStatusBarColor(0.2, 0.6, 1)
     self.frame:Hide()
 

@@ -245,7 +245,7 @@
 
 			<!-- STATUS BAR -->
 			<StatusBar parentKey="Bar" frameLevel="511">
-				<BarTexture file="Interface\AddOns\SharedMedia\statusbar\Melli.tga" setAllPoints="true">
+				<BarTexture file="Interface\AddOns\TUI\Media\Flat.tga" setAllPoints="true">
 					<Color r="1.0" g="0.0" b="1.0"/>
 				</BarTexture>
 				<Anchors>
@@ -256,7 +256,7 @@
 				</Anchors>
 				<Layers>
 					<Layer level="BACKGROUND">
-						<Texture file="Interface\AddOns\SharedMedia\statusbar\Melli.tga">
+						<Texture file="Interface\AddOns\TUI\Media\Flat.tga">
 							<Color r="0.1" g="0.1" b="0.1" a="0.4"/>
 							<Anchors>
 								<Anchor point="TOPLEFT"/>
