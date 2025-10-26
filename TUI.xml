@@ -1,5 +1,5 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/ ..\FrameXML\UI.xsd">
-    <Frame name="CooldownMainItemTemplate" mixin="CooldownViewerEssentialItemMixin" virtual="true">
+    <Frame name="CooldownMainItemTemplate" mixin="TUI_MainCooldownItemMixin" virtual="true">
 		<Size x="36" y="28"/>
 		<KeyValues>
 			<KeyValue key="cooldownFont" value="GameFontHighlightHugeOutline" type="string"/>
@@ -71,7 +71,7 @@
 		</Scripts>
 	</Frame>
 
-	<Frame name="CooldownUtilityItemTemplate" mixin="CooldownViewerUtilityItemMixin" virtual="true">
+	<Frame name="CooldownUtilityItemTemplate" mixin="TUI_UtilCooldownItemMixin" virtual="true">
 		<Size x="36" y="28"/>
 		<KeyValues>
 			<KeyValue key="cooldownFont" value="GameFontHighlightOutline" type="string"/>
