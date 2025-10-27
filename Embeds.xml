@@ -9,4 +9,5 @@
   <Include file="Libs\AceConfig-3.0\AceConfig-3.0.xml"/>
   <Include file="Libs\LibDeflate\LibDeflate.lua" />
   <Include file="Libs\LibSerialize\LibSerialize.lua" />
+  <Include file="Libs\LibCustomGlow-1.0\LibCustomGlow-1.0.xml"/>
 </Ui>

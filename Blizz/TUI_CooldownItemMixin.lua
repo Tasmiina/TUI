@@ -66,7 +66,8 @@ function TUI_CooldownItemMixin:OnSpellActivationOverlayGlowShowEvent(spellID)
 		return;
 	end
 
-	ActionButtonSpellAlertManager:ShowAlert(self);
+	-- Custom highlight instead of ActionButtonSpellAlertManager
+	self:ShowCustomHighlight();
 end
 
 function TUI_CooldownItemMixin:OnSpellActivationOverlayGlowHideEvent(spellID)
@@ -74,7 +75,8 @@ function TUI_CooldownItemMixin:OnSpellActivationOverlayGlowHideEvent(spellID)
 		return;
 	end
 
-	ActionButtonSpellAlertManager:HideAlert(self);
+	-- Hide custom highlight
+	self:HideCustomHighlight();
 end
 
 function TUI_CooldownItemMixin:OnSpellUpdateUsesEvent(spellID, baseSpellID)
@@ -350,9 +352,34 @@ function TUI_CooldownItemMixin:RefreshOverlayGlow()
 	local spellID = self:GetSpellID();
 	local isSpellOverlayed = spellID and C_SpellActivationOverlay.IsSpellOverlayed(spellID) or false;
 	if isSpellOverlayed then
-		ActionButtonSpellAlertManager:ShowAlert(self);
+		self:ShowCustomHighlight();
 	else
-		ActionButtonSpellAlertManager:HideAlert(self);
+		self:HideCustomHighlight();
+	end
+end
+
+function TUI_CooldownItemMixin:ShowCustomHighlight()
+	-- Use LibCustomGlow for button glow effect without start animation
+	local LibCustomGlow = LibStub("LibCustomGlow-1.0");
+	if LibCustomGlow then
+		LibCustomGlow.ButtonGlow_Start(self, {1, 1, 0, 0.8}, 0.5); -- Yellow glow with 0.5 frequency
+		-- Skip the start animation and go directly to the final glow state
+		if self._ButtonGlow and self._ButtonGlow.animIn then
+			self._ButtonGlow.animIn:Stop();
+			-- Call the finished handler to set final state
+			local AnimIn_OnFinished = self._ButtonGlow.animIn:GetScript("OnFinished");
+			if AnimIn_OnFinished then
+				AnimIn_OnFinished(self._ButtonGlow.animIn);
+			end
+		end
+	end
+end
+
+function TUI_CooldownItemMixin:HideCustomHighlight()
+	-- Stop LibCustomGlow button glow
+	local LibCustomGlow = LibStub("LibCustomGlow-1.0");
+	if LibCustomGlow then
+		LibCustomGlow.ButtonGlow_Stop(self);
 	end
 end
 

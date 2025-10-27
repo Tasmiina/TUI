@@ -12,7 +12,7 @@ function TUI_GridFrameMixin:Layout()
 	end
 
     local total = #layoutChildren
-    
+
     local xCount = 0
 
     local xOffset = 0
