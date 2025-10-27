@@ -74,7 +74,10 @@ function TUICastBar:OnEvent(event, unit)
         end
 
     elseif event == "UNIT_SPELLCAST_STOP" or event == "UNIT_SPELLCAST_INTERRUPTED" or event == "UNIT_SPELLCAST_CHANNEL_STOP" then
-        self.frame:Hide()
+        -- Don't hide in edit mode
+        if not self.tuiEditModeForced then
+            self.frame:Hide()
+        end
     end
 end
 
@@ -82,7 +85,10 @@ function TUICastBar:OnUpdate(elapsed)
     if not self.startTime or not self.endTime or not self.frame:IsShown() then return end
     local now = GetTime()
     if now >= self.endTime then
-        self.frame:Hide()
+        -- Don't hide in edit mode
+        if not self.tuiEditModeForced then
+            self.frame:Hide()
+        end
         return
     end
     local progress = self.isChanneling and (self.endTime - now) / (self.endTime - self.startTime)
