@@ -359,7 +359,6 @@ function TUI_CooldownItemMixin:RefreshOverlayGlow()
 end
 
 function TUI_CooldownItemMixin:ShowCustomHighlight()
-	-- Use LibCustomGlow for button glow effect without start animation
 	local LibCustomGlow = LibStub("LibCustomGlow-1.0");
 	if LibCustomGlow then
 		LibCustomGlow.ButtonGlow_Start(self, {1, 1, 0, 0.8}, 0.5); -- Yellow glow with 0.5 frequency
@@ -376,7 +375,6 @@ function TUI_CooldownItemMixin:ShowCustomHighlight()
 end
 
 function TUI_CooldownItemMixin:HideCustomHighlight()
-	-- Stop LibCustomGlow button glow
 	local LibCustomGlow = LibStub("LibCustomGlow-1.0");
 	if LibCustomGlow then
 		LibCustomGlow.ButtonGlow_Stop(self);
