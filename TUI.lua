@@ -566,6 +566,14 @@ function TUI:OnInitialize()
     self:UpdateLayout()
 
     self:_AddOptions()
+
+    self:RegisterChatCommand("tui", "SlashCommand")
+end
+
+function TUI:SlashCommand(msg)
+    if msg == "edit" then
+        -- TODO enter edit mode
+    end
 end
 
 function TUI:RefreshConfig()
