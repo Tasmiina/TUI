@@ -144,6 +144,12 @@ local SECONDARY_POWER_COLORS = {
 }
 
 function TUISecondaryResourceBar:UpdatePowerType()
+    -- Don't hide in edit mode
+    if self.tuiEditModeForced then
+        self.frame:Show()
+        return
+    end
+    
     local secondaryPowerType = self:GetSecondaryPowerType()
     if not secondaryPowerType then
         self.frame:Hide()
