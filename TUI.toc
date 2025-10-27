@@ -20,4 +20,9 @@ Bars/TUICastBar.lua
 Bars/TUIResourceBar.lua
 Bars/TUISecondaryResourceBar.lua
 
+Core/TUI_Config.lua
+Core/TUI_Profile.lua
+Core/TUI_Layout.lua
+Core/TUI_EditMode.lua
+
 TUI.lua
