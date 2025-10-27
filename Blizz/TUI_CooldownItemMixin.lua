@@ -1,247 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 -- Base Mixin for Essential and Utility cooldown items.
-TUI_CooldownItemMixin = CreateFromMixins(CooldownViewerItemDataMixin);
-
-function TUI_CooldownItemMixin:GetCooldownFrame()
-	return self.Cooldown;
-end
-
-function TUI_CooldownItemMixin:GetIconTexture()
-	return self.Icon;
-end
-
-function TUI_CooldownItemMixin:SetViewerFrame(viewerFrame)
-	self.viewerFrame = viewerFrame;
-end
-
-function TUI_CooldownItemMixin:SetIsEditing(isEditing)
-	self.isEditing = isEditing;
-	self:UpdateShownState();
-end
-
-function TUI_CooldownItemMixin:IsEditing()
-	return self.isEditing;
-end
-
-function TUI_CooldownItemMixin:SetEditModeData(index)
-	self.editModeIndex = index;
-	self:RefreshData();
-end
-
-function TUI_CooldownItemMixin:HasEditModeData()
-	return self.editModeIndex ~= nil;
-end
-
-function TUI_CooldownItemMixin:ClearEditModeData()
-	if not self:HasEditModeData() then
-		return;
-	end
-
-	self.editModeIndex = nil;
-	self:RefreshData();
-end
-
-function TUI_CooldownItemMixin:OnCooldownViewerSpellOverrideUpdatedEvent(baseSpellID, overrideSpellID)
-	-- Any time an override is added or removed the item needs to be synchronously updated so
-	-- it correctly responds to unique events happening later in the frame. To reduce redunant work
-	-- the whole RefreshData isn't done until a unique event is received.
-	if baseSpellID ~= self:GetBaseSpellID() then
-		return;
-	end
-
-	self:SetOverrideSpell(overrideSpellID);
-	self:RefreshData();
-end
-
-function TUI_CooldownItemMixin:OnSpellUpdateCooldownEvent(spellID, baseSpellID, startRecoveryCategory)
-	if not self:NeedsCooldownUpdate(spellID, baseSpellID, startRecoveryCategory) then
-		return;
-	end
-
-	self:RefreshData();
-end
-
-function TUI_CooldownItemMixin:OnPlayerTotemUpdateEvent(slot, name, startTime, duration, modRate, spellID)
-	if not self:NeedsTotemUpdate(slot, spellID) then
-		return;
-	end
-
-	if duration == 0 then
-		self:ClearTotemData();
-	else
-		self:SetTotemData({
-			slot = slot,
-			expirationTime = startTime + duration,
-			duration = duration,
-			name = name,
-			modRate = modRate;
-		});
-	end
-
-	self:RefreshData();
-end
-
-function TUI_CooldownItemMixin:GetFallbackSpellTexture()
-	if self:HasEditModeData() then
-		return GetEditModeIcon(self.editModeIndex);
-	end
-
-	return nil;
-end
-
-function TUI_CooldownItemMixin:RefreshActive()
-	self:SetIsActive(self:ShouldBeActive());
-end
-
-function TUI_CooldownItemMixin:RefreshSpellTexture()
-	local spellTexture = self:GetSpellTexture();
-	self:GetIconTexture():SetTexture(spellTexture);
-end
-
-function TUI_CooldownItemMixin:UpdateTooltip()
-	if GameTooltip:IsOwned(self) then
-		self:RefreshTooltip();
-	end
-end
-
-function TUI_CooldownItemMixin:SetHideWhenInactive(hideWhenInactive)
-	self.hideWhenInactive = hideWhenInactive;
-	self:UpdateShownState();
-end
-
-function TUI_CooldownItemMixin:ShouldBeShown()
-	if self:GetCooldownID() then
-		if not self.allowHideWhenInactive then
-			return true;
-		end
-
-		if not self.hideWhenInactive then
-			return true;
-		end
-
-		if self:IsActive() then
-			return true;
-		end
-
-		if CooldownViewerSettings:IsVisible() then
-			return true;
-		end
-	end
-
-	if self:IsEditing() then
-		return true;
-	end
-
-	return false;
-end
-
-function TUI_CooldownItemMixin:UpdateShownState()
-	local shouldBeShown = self:ShouldBeShown();
-	self:SetShown(shouldBeShown);
-end
-
-function TUI_CooldownItemMixin:SetTimerShown(shownSetting)
-	local cooldownFrame = self:GetCooldownFrame();
-	if cooldownFrame then
-		cooldownFrame:SetHideCountdownNumbers(not shownSetting);
-	end
-end
-
-function TUI_CooldownItemMixin:SetTooltipsShown(shownSetting)
-	self:SetMouseClickEnabled(false);
-	self:SetMouseMotionEnabled(shownSetting);
-end
-
-function TUI_CooldownItemMixin:IsTimerShown()
-	local cooldownFrame = self:GetCooldownFrame();
-	if cooldownFrame then
-		return not cooldownFrame:GetHideCountdownNumbers();
-	end
-	return false;
-end
-
-function TUI_CooldownItemMixin:ShouldBeActive()
-	return self.cooldownID ~= nil;
-end
-
-function TUI_CooldownItemMixin:OnActiveStateChanged()
-	self:UpdateShownState();
-end
-
-function TUI_CooldownItemMixin:SetIsActive(active)
-	if active == self.isActive then
-		return;
-	end
-
-	self.isActive = active;
-
-	self:OnActiveStateChanged();
-end
-
-function TUI_CooldownItemMixin:IsActive()
-	return self.isActive;
-end
-
-function TUI_CooldownItemMixin:NeedsCooldownUpdate(spellID, baseSpellID, startRecoveryCategory)
-	-- A nil spellID indicates all cooldowns should be updated.
-	if spellID == nil then
-		return true;
-	end
-
-	if self:UpdateLinkedSpell(spellID) then
-		return true;
-	end
-
-	if startRecoveryCategory == Constants.SpellCooldownConsts.GLOBAL_RECOVERY_CATEGORY then
-		return true;
-	end
-
-	local itemBaseSpellID = self:GetBaseSpellID();
-
-	if spellID == itemBaseSpellID then
-		return true;
-	end
-
-	-- Depending on the order of overrides being applied and removed, the item may already have a
-	-- different override spell than the spell being updated. But if the base spell is the same, the
-	-- item should still respond to the event.
-	if baseSpellID == itemBaseSpellID then
-		return true;
-	end
-
-	if spellID == self:GetSpellID() then
-		return true;
-	end
-
-	-- In rare cases, some spells remove their override before the Update Cooldown Event is sent.
-	-- When this happens the event doesn't correctly reference the base spell, so this logic
-	-- compensates for that to ensure the event causes a refresh.
-	local cooldownInfo = self:GetCooldownInfo();
-	if cooldownInfo and spellID == cooldownInfo.previousOverrideSpellID then
-		return true;
-	end
-
-	return false;
-end
-
-function TUI_CooldownItemMixin:NeedsTotemUpdate(slot, spellID)
-	if self:UpdateLinkedSpell(spellID) then
-		return true;
-	end
-
-	if spellID == self:GetSpellID() then
-		return true;
-	end
-
-	-- If a totem is destroyed the totem's spellID may already be set to 0, in which case
-	-- it's necessary to use the slot to determine if the update is needed.
-	local totemData = self:GetTotemData();
-	if spellID == 0 and totemData and totemData.slot == slot then
-		return true;
-	end
-
-	return false;
-end
+TUI_CooldownItemMixin = CreateFromMixins(CooldownViewerItemMixin);
 
 function TUI_CooldownItemMixin:GetChargeCountFrame()
 	return self.ChargeCount;
@@ -256,13 +15,13 @@ function TUI_CooldownItemMixin:GetOutOfRangeTexture()
 end
 
 function TUI_CooldownItemMixin:OnLoad()
-	CooldownViewerItemDataMixin.OnLoad(self);
+	CooldownViewerItemMixin.OnLoad(self);
 
 	self:GetCooldownFrame():SetScript("OnCooldownDone", GenerateClosure(self.OnCooldownDone, self));
 end
 
 function TUI_CooldownItemMixin:OnCooldownIDSet()
-	CooldownViewerItemDataMixin.OnCooldownIDSet(self);
+	CooldownViewerItemMixin.OnCooldownIDSet(self);
 
 	self:RefreshOverlayGlow();
 
@@ -278,7 +37,7 @@ function TUI_CooldownItemMixin:OnCooldownIDSet()
 end
 
 function TUI_CooldownItemMixin:OnCooldownIDCleared()
-	CooldownViewerItemDataMixin.OnCooldownIDCleared(self);
+	CooldownViewerItemMixin.OnCooldownIDCleared(self);
 
 	ActionButtonSpellAlertManager:HideAlert(self);
 
@@ -369,7 +128,40 @@ end
 
 function TUI_CooldownItemMixin:CacheCooldownValues()
 	-- If the spell results in a self buff, give those values precedence over the spell's cooldown until the buff is gone.
-	-- Aura functionality removed - only using spell cooldown info
+	if self:UseAuraForCooldown() == true then
+		local totemData = self:GetTotemData();
+		if totemData then
+			self.cooldownEnabled = 1;
+			self.cooldownStartTime = totemData.expirationTime - totemData.duration;
+			self.cooldownDuration = totemData.duration;
+			self.cooldownModRate = totemData.modRate;
+			self.cooldownSwipeColor = CooldownViewerConstants.ITEM_AURA_COLOR;
+			self.cooldownDesaturated = false;
+			self.cooldownShowDrawEdge = false;
+			self.cooldownShowSwipe = true;
+			self.cooldownUseAuraDisplayTime = true;
+			self.cooldownPlayFlash = false;
+			self.cooldownPaused = false;
+			return;
+		end
+
+		local auraData = self:GetAuraData();
+		if auraData then
+			self.cooldownEnabled = 1;
+			self.cooldownStartTime = auraData.expirationTime - auraData.duration;
+			self.cooldownDuration = auraData.duration;
+			self.cooldownModRate = auraData.timeMod;
+			self.cooldownSwipeColor = CooldownViewerConstants.ITEM_AURA_COLOR;
+			self.cooldownDesaturated = false;
+			self.cooldownShowDrawEdge = false;
+			self.cooldownShowSwipe = true;
+			self.cooldownUseAuraDisplayTime = true;
+			self.cooldownPlayFlash = false;
+			self.cooldownPaused = false;
+			return;
+		end
+	end
+
 	local spellChargeInfo = self:GetSpellChargeInfo();
 	local displayChargeCooldown = spellChargeInfo
 		and spellChargeInfo.cooldownStartTime
@@ -484,6 +276,7 @@ function TUI_CooldownItemMixin:RefreshSpellCooldownInfo()
 	else
 		cooldownFrame:SetSwipeColor(self.cooldownSwipeColor.r, self.cooldownSwipeColor.g, self.cooldownSwipeColor.b, self.cooldownSwipeColor.a);
 		cooldownFrame:SetDrawSwipe(self.cooldownShowSwipe);
+		cooldownFrame:SetUseAuraDisplayTime(self.cooldownUseAuraDisplayTime);
 		CooldownFrame_Set(cooldownFrame, self.cooldownStartTime, self.cooldownDuration, self.cooldownEnabled, self.cooldownShowDrawEdge, self.cooldownModRate);
 	end
 
@@ -564,6 +357,7 @@ function TUI_CooldownItemMixin:RefreshOverlayGlow()
 end
 
 function TUI_CooldownItemMixin:RefreshData()
+	self:RefreshAuraInstance();
 	self:RefreshSpellCooldownInfo();
 	self:RefreshSpellChargeInfo();
 	self:RefreshSpellTexture();
