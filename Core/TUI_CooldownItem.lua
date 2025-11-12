@@ -29,15 +29,13 @@ function TUI_CooldownItem:GetSpellID()
 end
 
 function TUI_CooldownItem:IsExpired()
-    if self.cooldownStartTime == nil then
-        return false
-    end
+    return false
 
-	if self.cooldownStartTime == 0 then
-		return true;
-	end
+	-- if self.cooldownEnabled == nil then
+    --     return true
+    -- end
 
-	return self.cooldownStartTime + self.cooldownDuration <= GetTime();
+    -- return self.cooldownEnabled;
 end
 
 function TUI_CooldownItem:OnActiveStateChanged()
@@ -211,41 +209,16 @@ function TUI_CooldownItem:RefreshSpellCooldownInfo()
 	self:CacheCooldownValues();
 
 	local cooldownFrame = self:GetCooldownFrame();
-	local isExpired = self:IsExpired();
 
-	if isExpired then
-		CooldownFrame_Clear(cooldownFrame);
-		cooldownFrame:SetDrawEdge(false);
-	else
-		cooldownFrame:SetSwipeColor(self.cooldownSwipeColor.r, self.cooldownSwipeColor.g, self.cooldownSwipeColor.b, self.cooldownSwipeColor.a);
-		cooldownFrame:SetDrawSwipe(self.cooldownShowSwipe);
-		cooldownFrame:SetUseAuraDisplayTime(self.cooldownUseAuraDisplayTime);
-		CooldownFrame_Set(cooldownFrame, self.cooldownStartTime, self.cooldownDuration, self.cooldownEnabled, self.cooldownShowDrawEdge, self.cooldownModRate);
-	end
+    -- Would ideally hide this, but this works with secrets so we roll with it
+    self:GetCooldownFrame():SetCooldown(self.cooldownStartTime, self.cooldownDuration, self.cooldownModRate)
+    self:GetCooldownFrame():SetDrawEdge(self.cooldownShowDrawEdge)
 
 	if self.cooldownPaused then
 		cooldownFrame:Pause();
 	else
 		cooldownFrame:Resume();
 	end
-
-	local cooldownFlashFrame = self:GetCooldownFlashFrame();
-	local playFlash = self.cooldownPlayFlash and not isExpired;
-
-	if playFlash then
-		local startDelay = self.cooldownStartTime + self.cooldownDuration - GetTime() - 0.75;
-
-		cooldownFlashFrame:Show();
-		cooldownFlashFrame.FlashAnim:Stop();
-		cooldownFlashFrame.FlashAnim.ShowAnim:SetStartDelay(startDelay);
-		cooldownFlashFrame.FlashAnim.PlayAnim:SetStartDelay(startDelay);
-		cooldownFlashFrame.FlashAnim:Play();
-	else
-		cooldownFlashFrame:Hide();
-		cooldownFlashFrame.FlashAnim:Stop();
-	end
-
-	-- CheckDisplayCooldownState("RefreshSpellCooldownInfo", self);
 
 	if self.allowOnCooldownAlert then
 		self:TriggerAlertEvent(Enum.CooldownViewerAlertEventType.OnCooldown);
@@ -274,7 +247,7 @@ function TUI_CooldownItem:CacheCooldownValues()
 		self.cooldownUseAuraDisplayTime = false;
 		self.cooldownPlayFlash = false;
 		self.cooldownPaused = false;
-		self.isOnGCD = false;
+		-- self.isOnGCD = false;
 		self.cooldownIsActive = false;
 		self.allowOnCooldownAlert = false;
 		self.isOnActualCooldown = false;
@@ -306,14 +279,14 @@ function TUI_CooldownItem:AddVisualDataSource_Aura()
 	self.wasSetFromAura = true;
 end
 
-local wasOnGCDLookup = {};
-local function CheckAllowOnCooldown(cdItem, spellID, spellCooldownInfo)
-	local wasOnGCD = wasOnGCDLookup[spellID];
-	wasOnGCDLookup[spellID] = cdItem.isOnGCD;
+-- local wasOnGCDLookup = {};
+-- local function CheckAllowOnCooldown(cdItem, spellID, spellCooldownInfo)
+-- 	local wasOnGCD = wasOnGCDLookup[spellID];
+-- 	wasOnGCDLookup[spellID] = cdItem.isOnGCD;
 
-	local allowOnCooldownAlert = wasOnGCD and not cdItem.isOnGCD and spellCooldownInfo.duration > (cdItem.cooldownDuration or 0) and spellCooldownInfo.duration > 0;
-	return allowOnCooldownAlert;
-end
+-- 	local allowOnCooldownAlert = wasOnGCD and not cdItem.isOnGCD and spellCooldownInfo.duration > (cdItem.cooldownDuration or 0) and spellCooldownInfo.duration > 0;
+-- 	return allowOnCooldownAlert;
+-- end
 
 function TUI_CooldownItem:CheckCacheCooldownValuesFromSpellCooldown(timeNow)
 	local spellID = self:GetSpellID();
@@ -321,14 +294,14 @@ function TUI_CooldownItem:CheckCacheCooldownValuesFromSpellCooldown(timeNow)
 	if spellCooldownInfo and not self:HasVisualDataSource_Charges() then
 		self:AddVisualDataSource_Cooldown();
 
-		local endTime = spellCooldownInfo.startTime + spellCooldownInfo.duration;
-		self.cooldownIsActive = endTime > timeNow;
+		-- local endTime = spellCooldownInfo.startTime + spellCooldownInfo.duration;
+		-- self.cooldownIsActive = endTime > timeNow;
 
-		self.isOnGCD = spellCooldownInfo.isOnGCD;
-		self.isOnActualCooldown = not self.isOnGCD and self.cooldownIsActive;
-		self.allowOnCooldownAlert = CheckAllowOnCooldown(self, spellID, spellCooldownInfo);
-		self.allowAvailableAlert = self.allowAvailableAlert or (not self.isOnGCD and spellCooldownInfo.duration > 0 and self.cooldownEnabled);
-		self.availableAlertTriggerTime = self.allowAvailableAlert and endTime or nil;
+		-- self.isOnGCD = spellCooldownInfo.isOnGCD;
+		-- self.isOnActualCooldown = not self.isOnGCD and self.cooldownIsActive;
+		-- self.allowOnCooldownAlert = CheckAllowOnCooldown(self, spellID, spellCooldownInfo);
+		-- self.allowAvailableAlert = self.allowAvailableAlert or (not self.isOnGCD and spellCooldownInfo.duration > 0 and self.cooldownEnabled);
+		-- self.availableAlertTriggerTime = self.allowAvailableAlert and endTime or nil;
 		self.cooldownEnabled = spellCooldownInfo.isEnabled;
 		self.cooldownStartTime = spellCooldownInfo.startTime;
 		self.cooldownDuration = spellCooldownInfo.duration;
@@ -350,7 +323,8 @@ end
 
 function TUI_CooldownItem:CheckCacheCooldownValuesFromCharges(timeNow)
 	local spellChargeInfo = self:GetSpellChargeInfo();
-	local displayChargeCooldown = spellChargeInfo and (spellChargeInfo.cooldownStartTime or 0) > 0 and (spellChargeInfo.currentCharges or 0) > 0;
+	-- local displayChargeCooldown = spellChargeInfo and (spellChargeInfo.cooldownStartTime or 0) > 0 and (spellChargeInfo.currentCharges or 0) > 0;
+    local displayChargeCooldown = spellChargeInfo
 
 	-- If the spell has multiple charges, give those values precedence over the spell's cooldown until the charges are spent.
 	if displayChargeCooldown then
@@ -367,12 +341,12 @@ function TUI_CooldownItem:CheckCacheCooldownValuesFromCharges(timeNow)
 		self.cooldownPlayFlash = true;
 		self.cooldownPaused = false;
 
-		if spellChargeInfo.cooldownStartTime > 0 and spellChargeInfo.cooldownDuration > 0 and spellChargeInfo.currentCharges < spellChargeInfo.maxCharges then
-			local predictedChargeGainTime = spellChargeInfo.cooldownStartTime + spellChargeInfo.cooldownDuration;
-			if predictedChargeGainTime > timeNow then
-				self:AddChargeGainedAlertTime(predictedChargeGainTime);
-			end
-		end
+		-- if spellChargeInfo.cooldownStartTime > 0 and spellChargeInfo.cooldownDuration > 0 and spellChargeInfo.currentCharges < spellChargeInfo.maxCharges then
+		-- 	local predictedChargeGainTime = spellChargeInfo.cooldownStartTime + spellChargeInfo.cooldownDuration;
+		-- 	if predictedChargeGainTime > timeNow then
+		-- 		self:AddChargeGainedAlertTime(predictedChargeGainTime);
+		-- 	end
+		-- end
 	end
 end
 
