@@ -111,13 +111,15 @@ function TUI_CooldownItem:SetViewerFrame(viewerFrame)
 end
 
 function TUI_CooldownItem:OnCooldownIDCleared()
+    if self.cooldownInfo then
+        C_Spell.EnableSpellRangeCheck(self.cooldownID, false);
+    end
+    
 	self.cooldownInfo = nil;
 	self.validAlertTypes = nil;
+    self.needsRangeCheck = false
 	-- self:ClearAuraInstanceInfo();
 	-- self:ClearTotemData();
-
-    C_Spell.EnableSpellRangeCheck(self.cooldownID, false);
-    self.needsRangeCheck = false
 
 	self:RefreshData();
 	self:UpdateShownState();
@@ -199,6 +201,11 @@ function TUI_CooldownItem:RefreshSpellChargeInfo()
 
 	local chargeCountFrame = self:GetChargeCountFrame();
 	chargeCountFrame:SetShown(self.cooldownChargesShown);
+
+    local chargeInfo = self:GetSpellChargeInfo()
+    if chargeInfo == nil then
+        return
+    end
 
 	if self.cooldownChargesShown then
 		chargeCountFrame.Current:SetText(self:GetSpellChargeInfo().currentCharges);
@@ -445,8 +452,25 @@ function TUI_CooldownItem:RefreshData()
 	self:RefreshActive();
 end
 
+function TUI_CooldownItem:ShouldBeShown()
+	if self.cooldownID then
+		if not self.allowHideWhenInactive then
+			return true;
+		end
+
+		if not self.hideWhenInactive then
+			return true;
+		end
+
+		return true
+	end
+
+	return false;
+end
+
 function TUI_CooldownItem:UpdateShownState()
-    self:SetShown(true)
+    local shouldBeShown = self:ShouldBeShown();
+	self:SetShown(shouldBeShown);
 end
 
 function TUI_CooldownItem:NeedsSpellRangeUpdate(spellID)

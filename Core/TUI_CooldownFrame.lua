@@ -20,23 +20,51 @@ function TUI_CooldownFrame:OnLoad()
 	self:UpdateShownState();
 end
 
+
+function TUI_CooldownFrame:CooldownValid(entry)
+    if entry.type == "item" then
+        return C_Item.IsEquippedItem(entry.id)
+    else
+        return C_SpellBook.IsSpellInSpellBook(entry.id)
+    end
+end
+
+function TUI_CooldownFrame:BuildCooldownList()
+    local baseList = self:GetCooldownIDsBase()
+
+    self.cooldownList = {}
+
+    for _, item in pairs(baseList) do
+        if self:CooldownValid(item) then
+            table.insert(self.cooldownList, item)
+        end
+    end
+end
+
 function TUI_CooldownFrame:OnShow()
     self:RegisterEvent("SPELL_UPDATE_COOLDOWN");
 	self:RegisterEvent("SPELL_RANGE_CHECK_UPDATE");
     self:RegisterEvent("UNIT_POWER_UPDATE", "player");
     self:RegisterEvent("UNIT_AURA", "player");
-
-    print("Showing")
+    
+    self:RegisterEvent("PLAYER_LEVEL_CHANGED")
+    self:RegisterEvent("PLAYER_TALENT_UPDATE")
+    self:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
+    self:RegisterEvent("PLAYER_EQUIPMENT_CHANGED")
 
     self:RefreshLayout();
 end
 
 function TUI_CooldownFrame:OnHide()
-    print("Hiding")
     self:UnregisterEvent("SPELL_UPDATE_COOLDOWN")
 	self:UnregisterEvent("SPELL_RANGE_CHECK_UPDATE");
     self:UnregisterEvent("UNIT_POWER_UPDATE")
     self:UnregisterEvent("UNIT_AURA")
+
+    self:UnregisterEvent("PLAYER_LEVEL_CHANGED")
+    self:UnregisterEvent("PLAYER_TALENT_UPDATE")
+    self:UnregisterEvent("PLAYER_SPECIALIZATION_CHANGED")
+    self:UnregisterEvent("PLAYER_EQUIPMENT_CHANGED")
 end
 
 function TUI_CooldownFrame:OnEvent(event, ...)
@@ -57,8 +85,14 @@ function TUI_CooldownFrame:OnEvent(event, ...)
         end
     elseif event == "UNIT_AURA" then
         local _unit, unitAuraUpdateInfo = ...;
-        -- TUI:Print(_unit);
-        -- TUI:Print(unitAuraUpdateInfo);
+    elseif event == "PLAYER_LEVEL_CHANGED" then
+        self:RefreshLayout();
+    elseif event == "PLAYER_TALENT_UPDATE" then
+        self:RefreshLayout();
+    elseif event == "PLAYER_SPECIALIZATION_CHANGED" then
+        self:RefreshLayout();
+    elseif event == "PLAYER_EQUIPMENT_CHANGED" then
+        self:RefreshLayout();
     end
 end
 
@@ -116,6 +150,7 @@ function TUI_CooldownFrame:OnAcquireItemFrame(itemFrame)
 end
 
 function TUI_CooldownFrame:RefreshLayout()
+    self:BuildCooldownList();
     self.itemFramePool:ReleaseAll();
 
     local itemCount = self:GetItemCount();
@@ -135,14 +170,14 @@ end
 
 -- https://warcraft.wiki.gg/wiki/API_C_Item.IsEquippedItem
 
-function TUI_CooldownFrame:GetCooldownIDs()
+function TUI_CooldownFrame:GetCooldownIDsBase()
     return {
         {
             id = 1226019,
             type = "spell"
         },
         {
-            id = 1241285,
+            id = 1245412,
             type = "spell"
         },
         {
@@ -172,6 +207,10 @@ function TUI_CooldownFrame:GetCooldownIDs()
     }
 end
 
+function TUI_CooldownFrame:GetCooldownIDs()
+    return self.cooldownList
+end
+
 function TUI_CooldownFrame:RefreshData()
     local cooldownIDs = self:GetCooldownIDs();
 
@@ -183,6 +222,8 @@ function TUI_CooldownFrame:RefreshData()
             itemFrame:ClearCooldownID();
         end
     end
+
+    self:GetItemContainerFrame():Layout();
 end
 
 function TUI_CooldownFrame:SetTimerShown(shownSetting)
