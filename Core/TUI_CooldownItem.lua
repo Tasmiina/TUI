@@ -16,6 +16,10 @@ function TUI_CooldownItem:GetCooldownFlashFrame()
 	return self.CooldownFlash;
 end
 
+function TUI_CooldownItem:GetOutOfRangeTexture()
+	return self.OutOfRange;
+end
+
 function TUI_CooldownItem:ShouldBeActive()
 	return self.cooldownID ~= nil;
 end
@@ -112,6 +116,9 @@ function TUI_CooldownItem:OnCooldownIDCleared()
 	-- self:ClearAuraInstanceInfo();
 	-- self:ClearTotemData();
 
+    C_Spell.EnableSpellRangeCheck(self.cooldownID, false);
+    self.needsRangeCheck = false
+
 	self:RefreshData();
 	self:UpdateShownState();
 end
@@ -136,6 +143,14 @@ function TUI_CooldownItem:OnCooldownIDSet()
 	-- if linkedSpellID then
 	-- 	self:SetLinkedSpell(linkedSpellID);
 	-- end
+
+
+	self.needsRangeCheck = self.cooldownID and C_Spell.SpellHasRange(self.cooldownID);
+
+    if self.needsRangeCheck then
+        C_Spell.EnableSpellRangeCheck(self.cooldownID, true);
+        self.spellOutOfRange = C_Spell.IsSpellInRange(self.cooldownID) == false;
+    end
 
     self:CacheChargeValues();
 
@@ -360,6 +375,25 @@ function TUI_CooldownItem:RefreshIconDesaturation()
     self:GetIconTexture():SetDesaturated(not C_Spell.IsSpellUsable(self.cooldownID))
 end
 
+function TUI_CooldownItem:RefreshIconColor()
+    local iconTexture = self:GetIconTexture();
+	local outOfRangeTexture = self:GetOutOfRangeTexture();
+
+    local isUsable, notEnoughMana = C_Spell.IsSpellUsable(self.cooldownID);
+
+	if self.spellOutOfRange == true then
+		iconTexture:SetVertexColor(CooldownViewerConstants.ITEM_NOT_IN_RANGE_COLOR:GetRGBA());
+	elseif isUsable then
+		iconTexture:SetVertexColor(CooldownViewerConstants.ITEM_USABLE_COLOR:GetRGBA());
+	elseif notEnoughMana then
+		iconTexture:SetVertexColor(CooldownViewerConstants.ITEM_NOT_ENOUGH_MANA_COLOR:GetRGBA());
+	else
+		iconTexture:SetVertexColor(CooldownViewerConstants.ITEM_NOT_USABLE_COLOR:GetRGBA());
+	end
+
+	outOfRangeTexture:SetShown(self.spellOutOfRange == true);
+end
+
 function TUI_CooldownItem:RefreshData()
     self:ClearVisualDataSource();
 	-- self:RefreshAuraInstance();
@@ -367,7 +401,7 @@ function TUI_CooldownItem:RefreshData()
 	self:RefreshSpellChargeInfo();
 	self:RefreshSpellTexture();
 	self:RefreshIconDesaturation();
-	-- self:RefreshIconColor();
+	self:RefreshIconColor();
 	-- self:RefreshOverlayGlow();
 	self:RefreshActive();
 end
@@ -375,6 +409,24 @@ end
 function TUI_CooldownItem:UpdateShownState()
     self:SetShown(true)
 end
+
+function TUI_CooldownItem:NeedsSpellRangeUpdate(spellID)
+	if spellID == self.cooldownID then
+		return true;
+	end
+
+	return false;
+end
+
+function TUI_CooldownItem:OnSpellRangeCheckUpdateEvent(spellID, inRange, checksRange)
+	if not self:NeedsSpellRangeUpdate(spellID) then
+		return;
+	end
+
+	self.spellOutOfRange = checksRange == true and inRange == false;
+	self:RefreshIconColor();
+end
+
 
 function TUI_CooldownItem:OnLoad()
 	-- CooldownViewerItemMixin.OnLoad(self);
