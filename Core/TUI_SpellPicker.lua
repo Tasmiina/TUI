@@ -52,8 +52,53 @@ local COOLDOWN_LISTS = {
     { key = "cooldowns_6", icon = "Interface\\Icons\\INV_Misc_Number_6", label = "Cooldowns 6" },
 }
 
+local DEFAULT_LIBRARY_TAB = "spellbook"
+local LIBRARY_TABS = {
+    { key = "spellbook", label = "Spellbook" },
+    { key = "equippedItems", label = "Equipped Items" },
+}
+
+local function GetLibraryTabInfo(tabKey)
+    for _, info in ipairs(LIBRARY_TABS) do
+        if info.key == tabKey then
+            return info
+        end
+    end
+    return nil
+end
+
+local EQUIPMENT_SLOTS = {}
+do
+    local slotOrder = {
+        INVSLOT_HEAD,
+        INVSLOT_NECK,
+        INVSLOT_SHOULDER,
+        INVSLOT_CHEST,
+        INVSLOT_WAIST,
+        INVSLOT_LEGS,
+        INVSLOT_FEET,
+        INVSLOT_WRIST,
+        INVSLOT_HAND,
+        INVSLOT_FINGER1,
+        INVSLOT_FINGER2,
+        INVSLOT_TRINKET1,
+        INVSLOT_TRINKET2,
+        INVSLOT_BACK,
+        INVSLOT_MAINHAND,
+        INVSLOT_OFFHAND,
+        INVSLOT_RANGED,
+    }
+
+    for _, slot in ipairs(slotOrder) do
+        if slot then
+            table.insert(EQUIPMENT_SLOTS, slot)
+        end
+    end
+end
+
 TUI_SpellPicker.spellbookFilter = "class"
 TUI_SpellPicker.selectedCooldownListIndex = 1
+TUI_SpellPicker.activeLibraryTab = DEFAULT_LIBRARY_TAB
 
 local function GetCooldownListInfo(index)
     return COOLDOWN_LISTS[index or 1]
@@ -171,6 +216,125 @@ function TUI_SpellPicker:CreateCooldownTabs(frame)
     self:UpdateCooldownTabSelection()
 end
 
+function TUI_SpellPicker:GetActiveLibraryTab()
+    local active = self.activeLibraryTab or DEFAULT_LIBRARY_TAB
+    if not GetLibraryTabInfo(active) then
+        active = DEFAULT_LIBRARY_TAB
+        self.activeLibraryTab = active
+    end
+    return active
+end
+
+function TUI_SpellPicker:UpdateLibraryTabSelection()
+    if not self.libraryTabButtons then
+        return
+    end
+
+    local active = self:GetActiveLibraryTab()
+
+    for _, button in ipairs(self.libraryTabButtons) do
+        local isSelected = (button.tabKey == active)
+        if button.SelectedTexture then
+            if isSelected then
+                button.SelectedTexture:Show()
+            else
+                button.SelectedTexture:Hide()
+            end
+        end
+
+        button:SetAlpha(isSelected and 1 or 0.85)
+        button:SetButtonState(isSelected and "PUSHED" or "NORMAL")
+    end
+end
+
+function TUI_SpellPicker:UpdateLibraryTabVisibility()
+    if not self.sections then
+        return
+    end
+
+    local active = self:GetActiveLibraryTab()
+
+    for _, tabInfo in ipairs(LIBRARY_TABS) do
+        local section = self.sections[tabInfo.key]
+        if section and section.Container then
+            section.Container:SetShown(tabInfo.key == active)
+        end
+    end
+
+    self:UpdateLibraryTabSelection()
+end
+
+function TUI_SpellPicker:SetLibraryTab(tabKey, suppressRefresh)
+    local info = GetLibraryTabInfo(tabKey) or GetLibraryTabInfo(DEFAULT_LIBRARY_TAB)
+    if not info then
+        return
+    end
+
+    if self.activeLibraryTab == info.key then
+        self:UpdateLibraryTabSelection()
+        self:UpdateLibraryTabVisibility()
+        return
+    end
+
+    self.activeLibraryTab = info.key
+    self:UpdateLibraryTabVisibility()
+
+    if not suppressRefresh then
+        self:RefreshSections()
+    end
+end
+
+function TUI_SpellPicker:CreateLibraryTabs(frame, offsetX)
+    if self.libraryTabButtons then
+        return
+    end
+
+    local tabBar = CreateFrame("Frame", nil, frame)
+    tabBar:SetPoint("TOPLEFT", frame, "TOPLEFT", offsetX, SECTION_TOP_OFFSET)
+    tabBar:SetSize(COLUMN_WIDTH, 26)
+    tabBar:SetFrameLevel(frame:GetFrameLevel() + 1)
+
+    self.libraryTabBar = tabBar
+    self.libraryTabButtons = {}
+
+    local buttonHeight = 24
+    local spacing = 8
+    local availableWidth = COLUMN_WIDTH - spacing * (#LIBRARY_TABS - 1)
+    local buttonWidth = math.floor(availableWidth / #LIBRARY_TABS)
+
+    local previousButton = nil
+    for index, info in ipairs(LIBRARY_TABS) do
+        local button = CreateFrame("Button", nil, tabBar, "UIPanelButtonTemplate")
+        button:SetSize(buttonWidth, buttonHeight)
+        if index == 1 then
+            button:SetPoint("TOPLEFT", tabBar, "TOPLEFT", 0, 0)
+        else
+            button:SetPoint("LEFT", previousButton, "RIGHT", spacing, 0)
+        end
+
+        button:SetText(info.label)
+        button:SetScript("OnClick", function()
+            self:SetLibraryTab(info.key)
+        end)
+        button:SetMotionScriptsWhileDisabled(true)
+        button:SetNormalFontObject("GameFontNormalSmall")
+        button:SetHighlightFontObject("GameFontHighlightSmall")
+        button:SetDisabledFontObject("GameFontDisableSmall")
+        button.tabKey = info.key
+
+        local selectedTexture = button:CreateTexture(nil, "OVERLAY")
+        selectedTexture:SetAllPoints()
+        selectedTexture:SetColorTexture(1, 0.82, 0, 0.25)
+        selectedTexture:Hide()
+        button.SelectedTexture = selectedTexture
+
+        self.libraryTabButtons[index] = button
+        previousButton = button
+    end
+
+    self:UpdateLibraryTabSelection()
+end
+
 local function NormalizeSpellId(identifier)
     if identifier == nil then
         return nil
@@ -273,7 +437,7 @@ end
 
 local function CreateSpellbookFilterDropdown(selfRef, section)
     local dropdown = CreateFrame("Frame", "TUI_SpellPickerSpellbookFilterDropdown", section.Container, "UIDropDownMenuTemplate")
-    dropdown:SetPoint("TOPRIGHT", -2, 6)
+    dropdown:SetPoint("TOPRIGHT", section.Container, "TOPRIGHT", -2, 6 - (section.topPadding or 0))
     UIDropDownMenu_SetWidth(dropdown, COLUMN_WIDTH - 60)
     UIDropDownMenu_JustifyText(dropdown, "LEFT")
 
@@ -321,11 +485,12 @@ local function CreateCloseButton(frame)
     return closeButton
 end
 
-local function CreateSection(self, frame, key, titleText, offsetX, emptyText)
+local function CreateSection(self, frame, key, titleText, offsetX, emptyText, options)
     self.sections = self.sections or {}
 
     local section = {}
     section.key = key
+    section.topPadding = options and options.topPadding or 0
 
     local container = CreateFrame("Frame", nil, frame)
     container:SetSize(COLUMN_WIDTH, FRAME_HEIGHT - 96)
@@ -333,11 +498,11 @@ local function CreateSection(self, frame, key, titleText, offsetX, emptyText)
     section.Container = container
 
     section.Title = container:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    section.Title:SetPoint("TOPLEFT", 2, 0)
+    section.Title:SetPoint("TOPLEFT", 2, -section.topPadding)
     section.Title:SetText(titleText)
 
     local scrollFrame = CreateFrame("ScrollFrame", nil, container, "UIPanelScrollFrameTemplate")
-    scrollFrame:SetPoint("TOPLEFT", 0, -22)
+    scrollFrame:SetPoint("TOPLEFT", 0, -22 - section.topPadding)
     scrollFrame:SetPoint("BOTTOMRIGHT", -20, 0)
 
     local content = CreateFrame("Frame", nil, scrollFrame)
@@ -393,7 +558,7 @@ local function AcquireRow(self, section, index)
         nameText:SetJustifyH("LEFT")
         row.NameText = nameText
 
-        if section.key == "profile" or section.key == "spellbook" then
+        if section.key == "profile" or section.key == "spellbook" or section.key == "equippedItems" then
             local button = CreateFrame("Button", nil, row, "UIPanelButtonTemplate")
             button:SetPoint("RIGHT", 0, 0)
             button:SetSize(32, 24)
@@ -422,7 +587,7 @@ local function AcquireRow(self, section, index)
             row.UpButton = upButton
 
             nameText:SetPoint("RIGHT", row.UpButton, "LEFT", -6, 0)
-        elseif section.key == "spellbook" and row.ActionButton then
+        elseif (section.key == "spellbook" or section.key == "equippedItems") and row.ActionButton then
             nameText:SetPoint("RIGHT", row.ActionButton, "LEFT", -6, 0)
         end
 
@@ -459,7 +624,7 @@ local function PopulateSection(self, section, entries)
                 row.ActionButton:SetText("X")
                 row.ActionButton:SetWidth(32)
                 row.ActionButton:SetScript("OnClick", function()
-                    self:RemoveCooldownSpell(entry.id)
+                    self:RemoveCooldownEntry(entry.id, entry.type)
                 end)
                 row.ActionButton:Show()
                 if row.UpButton then
@@ -493,6 +658,13 @@ local function PopulateSection(self, section, entries)
                     self:AddCooldownSpell(entry.id)
                 end)
                 row.ActionButton:Show()
+            elseif section.key == "equippedItems" then
+                row.ActionButton:SetText("Add")
+                row.ActionButton:SetWidth(60)
+                row.ActionButton:SetScript("OnClick", function()
+                    self:AddCooldownItem(entry.id)
+                end)
+                row.ActionButton:Show()
             else
                 row.ActionButton:Hide()
             end
@@ -514,8 +686,8 @@ local function PopulateSection(self, section, entries)
     end
 end
 
-function TUI_SpellPicker:RemoveCooldownSpell(spellId)
-    local normalizedId = NormalizeSpellId(spellId)
+function TUI_SpellPicker:RemoveCooldownEntry(identifier, entryType)
+    local normalizedId = NormalizeSpellId(identifier)
     if not normalizedId then
         return
     end
@@ -531,7 +703,8 @@ function TUI_SpellPicker:RemoveCooldownSpell(spellId)
     local updatedList = {}
 
     for _, entry in ipairs(currentList) do
-        if entry.id ~= normalizedId then
+        local currentType = entry.type or "spell"
+        if not (entry.id == normalizedId and (not entryType or currentType == entryType)) then
             table.insert(updatedList, entry)
         else
             removed = true
@@ -553,25 +726,31 @@ function TUI_SpellPicker:RemoveCooldownSpell(spellId)
     self:RefreshSections()
 end
 
-function TUI_SpellPicker:AddCooldownSpell(spellId)
-    local normalizedId = NormalizeSpellId(spellId)
+function TUI_SpellPicker:RemoveCooldownSpell(spellId)
+    self:RemoveCooldownEntry(spellId, "spell")
+end
+
+function TUI_SpellPicker:AddCooldownEntry(identifier, entryType)
+    local normalizedId = NormalizeSpellId(identifier)
     if not normalizedId then
         return
     end
 
+    local normalizedType = (entryType == "item") and "item" or "spell"
     local listKey = self:GetSelectedCooldownListKey()
 
     local currentList = CopyCooldownList(self:GetCooldownList())
 
     for _, entry in ipairs(currentList) do
-        if entry.id == normalizedId then
+        local currentType = entry.type or "spell"
+        if entry.id == normalizedId and currentType == normalizedType then
             return
         end
     end
 
     table.insert(currentList, {
         id = normalizedId,
-        type = "spell",
+        type = normalizedType,
     })
 
     self:SetCooldownList(currentList)
@@ -583,6 +762,14 @@ function TUI_SpellPicker:AddCooldownSpell(spellId)
     RefreshCooldownFramesForKey(listKey)
 
     self:RefreshSections()
+end
+
+function TUI_SpellPicker:AddCooldownSpell(spellId)
+    self:AddCooldownEntry(spellId, "spell")
+end
+
+function TUI_SpellPicker:AddCooldownItem(itemId)
+    self:AddCooldownEntry(itemId, "item")
 end
 
 function TUI_SpellPicker:MoveCooldownEntry(index, delta)
@@ -680,8 +867,15 @@ function TUI_SpellPicker:EnsureFrame()
     self:CreateCooldownTabs(frame)
 
     local profileOffset = LEFT_MARGIN + TAB_WIDTH + TAB_SPACING
+    local libraryOffset = profileOffset + COLUMN_WIDTH + COLUMN_GAP
+
     CreateSection(self, frame, "profile", "", profileOffset, "No spells configured for this cooldown list.")
-    CreateSection(self, frame, "spellbook", "Spellbook Spells", profileOffset + COLUMN_WIDTH + COLUMN_GAP, "No spells found in your spellbook.")
+    self:CreateLibraryTabs(frame, libraryOffset)
+    CreateSection(self, frame, "spellbook", "Spellbook Spells", libraryOffset, "No spells found in your spellbook.", { topPadding = 30 })
+    CreateSection(self, frame, "equippedItems", "Equipped On-Use Items", libraryOffset, "No equipped on-use items found.", { topPadding = 30 })
+
+    self:SetLibraryTab(self:GetActiveLibraryTab(), true)
+    self:UpdateLibraryTabVisibility()
     self:UpdateSpellbookFilterDropdown()
 
     frame:Hide()
@@ -693,21 +887,31 @@ end
 
 function TUI_SpellPicker:GetCooldownSpellEntries()
     local entries = {}
-    local spellIdSet = {}
+    local exclusionSets = {
+        any = {},
+        spell = {},
+        item = {},
+    }
 
     local storedList = CopyCooldownList(self:GetCooldownList())
 
     for _, data in ipairs(storedList) do
         local id = data.id
-        spellIdSet[id] = true
+        local entryType = data.type or "spell"
+        exclusionSets.any[id] = true
+        exclusionSets[entryType][id] = true
 
-        if data.type == "item" then
+        if entryType == "item" then
             local itemName, _itemLine, _itemQuality, _itemLevel, _itemMinLevel, _itemType, _itemSubType, _itemStackCount, _itemEquipLoc, itemTexture = C_Item.GetItemInfo(id)
+            if not itemName and C_Item.RequestLoadItemDataByID then
+                C_Item.RequestLoadItemDataByID(id)
+            end
 
             table.insert(entries, {
                 id = id,
                 icon = itemTexture or DEFAULT_ICON,
-                name = itemName or UNKNOWN_SPELL_NAME
+                name = itemName or UNKNOWN_SPELL_NAME,
+                type = entryType,
             })
         else
             local spellInfo = C_Spell and C_Spell.GetSpellInfo and C_Spell.GetSpellInfo(id) or {}
@@ -715,17 +919,28 @@ function TUI_SpellPicker:GetCooldownSpellEntries()
             table.insert(entries, {
                 id = id,
                 icon = spellInfo.iconID or DEFAULT_ICON,
-                name = spellInfo.name or UNKNOWN_SPELL_NAME
+                name = spellInfo.name or UNKNOWN_SPELL_NAME,
+                type = entryType,
             })
         end
     end
 
-    return entries, spellIdSet
+    return entries, exclusionSets
 end
 
 function TUI_SpellPicker:GetSpellBookEntries(excludeIds, filterKey)
     local entries = {}
-    local excluded = excludeIds or {}
+    local excluded = {}
+
+    if type(excludeIds) == "table" then
+        if type(excludeIds.spell) == "table" then
+            excluded = excludeIds.spell
+        elseif type(excludeIds.any) == "table" then
+            excluded = excludeIds.any
+        else
+            excluded = excludeIds
+        end
+    end
 
     if not C_SpellBook then
         return entries
@@ -987,13 +1202,89 @@ function TUI_SpellPicker:GetSpellBookEntries(excludeIds, filterKey)
     return entries
 end
 
+function TUI_SpellPicker:GetEquippedItemEntries(excludeIds)
+    local entries = {}
+    local excluded = {}
+
+    if type(excludeIds) == "table" then
+        if type(excludeIds.item) == "table" then
+            excluded = excludeIds.item
+        elseif type(excludeIds.any) == "table" then
+            excluded = excludeIds.any
+        else
+            excluded = excludeIds
+        end
+    end
+
+    if not C_Item or not C_Item.GetItemSpell or not EQUIPMENT_SLOTS or not GetInventoryItemID then
+        return entries
+    end
+
+    local seen = {}
+
+    for _, slot in ipairs(EQUIPMENT_SLOTS) do
+        local itemID = GetInventoryItemID("player", slot)
+        if itemID and not excluded[itemID] and not seen[itemID] then
+            local spellName, spellID
+            if C_Item.GetItemSpell then
+                spellName, spellID = C_Item.GetItemSpell(itemID)
+            end
+
+            if spellID then
+                local itemName, _, _, _, _, _, _, _, _, itemIcon = C_Item.GetItemInfo(itemID)
+                if not itemName and spellName then
+                    itemName = spellName
+                end
+
+                if not itemName and C_Item.RequestLoadItemDataByID then
+                    C_Item.RequestLoadItemDataByID(itemID)
+                end
+
+                if not itemIcon then
+                    if C_Item.GetItemIconByID then
+                        local icon = C_Item.GetItemIconByID(itemID)
+                        if icon then
+                            itemIcon = icon
+                        end
+                    end
+                end
+                if not itemIcon and C_Item.RequestLoadItemDataByID then
+                    C_Item.RequestLoadItemDataByID(itemID)
+                end
+
+                table.insert(entries, {
+                    id = itemID,
+                    icon = itemIcon or DEFAULT_ICON,
+                    name = itemName or UNKNOWN_SPELL_NAME,
+                    spellID = spellID,
+                    type = "item",
+                })
+
+                seen[itemID] = true
+            end
+        end
+    end
+
+    table.sort(entries, function(left, right)
+        if left.name == right.name then
+            return left.id < right.id
+        end
+        return left.name < right.name
+    end)
+
+    return entries
+end
+
 function TUI_SpellPicker:RefreshSections()
     local frame = self:EnsureFrame()
     local profileSection = self.sections.profile
     local spellbookSection = self.sections.spellbook
+    local equippedSection = self.sections.equippedItems
     local profileEntries, profileIds = self:GetCooldownSpellEntries()
+    local activeLibraryTab = self:GetActiveLibraryTab()
 
     self:UpdateCooldownTabSelection()
+    self:UpdateLibraryTabVisibility()
 
     if profileSection then
         PopulateSection(self, profileSection, profileEntries)
@@ -1002,9 +1293,11 @@ function TUI_SpellPicker:RefreshSections()
         end
     end
 
-    if spellbookSection then
+    if spellbookSection and activeLibraryTab == "spellbook" then
         self:UpdateSpellbookFilterDropdown()
         PopulateSection(self, spellbookSection, self:GetSpellBookEntries(profileIds, self.spellbookFilter))
+    elseif equippedSection and activeLibraryTab == "equippedItems" then
+        PopulateSection(self, equippedSection, self:GetEquippedItemEntries(profileIds))
     end
 end
 
