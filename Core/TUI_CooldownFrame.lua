@@ -22,6 +22,7 @@ end
 
 function TUI_CooldownFrame:OnShow()
     self:RegisterEvent("SPELL_UPDATE_COOLDOWN");
+    self:RegisterEvent("UNIT_POWER_UPDATE", "player");
     self:RegisterEvent("UNIT_AURA", "player");
 
     print("Showing")
@@ -32,6 +33,7 @@ end
 function TUI_CooldownFrame:OnHide()
     print("Hiding")
     self:UnregisterEvent("SPELL_UPDATE_COOLDOWN")
+    self:UnregisterEvent("UNIT_POWER_UPDATE")
     self:UnregisterEvent("UNIT_AURA")
 end
 
@@ -41,6 +43,10 @@ function TUI_CooldownFrame:OnEvent(event, ...)
         
         for itemFrame in self.itemFramePool:EnumerateActive() do            
             itemFrame:OnSpellUpdateCooldownEvent(spellID, baseSpellID, startRecoveryCategory);
+        end
+    elseif event == "UNIT_POWER_UPDATE" then
+        for itemFrame in self.itemFramePool:EnumerateActive() do
+            itemFrame:OnPowerUpdate();
         end
     elseif event == "UNIT_AURA" then
         local _unit, unitAuraUpdateInfo = ...;

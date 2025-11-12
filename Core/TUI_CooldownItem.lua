@@ -91,6 +91,10 @@ function TUI_CooldownItem:OnSpellUpdateCooldownEvent(spellID, baseSpellID, start
 	end
 end
 
+function TUI_CooldownItem:OnPowerUpdate()
+	self:RefreshIconDesaturation();
+end
+
 function TUI_CooldownItem:ClearCooldownID()
 	if self.cooldownID ~= nil then
 		self.cooldownID = nil;
@@ -294,9 +298,10 @@ function TUI_CooldownItem:CheckCacheCooldownValuesFromSpellCooldown(timeNow)
 	if spellCooldownInfo and not self:HasVisualDataSource_Charges() then
 		self:AddVisualDataSource_Cooldown();
 
+        -- DevTool:AddData(spellCooldownInfo, "SCDI");
+
 		-- local endTime = spellCooldownInfo.startTime + spellCooldownInfo.duration;
 		-- self.cooldownIsActive = endTime > timeNow;
-
 		-- self.isOnGCD = spellCooldownInfo.isOnGCD;
 		-- self.isOnActualCooldown = not self.isOnGCD and self.cooldownIsActive;
 		-- self.allowOnCooldownAlert = CheckAllowOnCooldown(self, spellID, spellCooldownInfo);
@@ -324,22 +329,23 @@ end
 function TUI_CooldownItem:CheckCacheCooldownValuesFromCharges(timeNow)
 	local spellChargeInfo = self:GetSpellChargeInfo();
 	-- local displayChargeCooldown = spellChargeInfo and (spellChargeInfo.cooldownStartTime or 0) > 0 and (spellChargeInfo.currentCharges or 0) > 0;
-    local displayChargeCooldown = spellChargeInfo
 
 	-- If the spell has multiple charges, give those values precedence over the spell's cooldown until the charges are spent.
-	if displayChargeCooldown then
+	if spellChargeInfo ~= nil then
 		self:AddVisualDataSource_Charges();
 		self.cooldownEnabled = true;
 		self.cooldownStartTime = spellChargeInfo.cooldownStartTime;
 		self.cooldownDuration = spellChargeInfo.cooldownDuration;
 		self.cooldownModRate = spellChargeInfo.chargeModRate;
 		self.cooldownSwipeColor = CooldownViewerConstants.ITEM_COOLDOWN_COLOR;
-		self.cooldownDesaturated = false;
+		self.cooldownDesaturated = spellChargeInfo.currentCharges;
 		self.cooldownShowDrawEdge = true;
 		self.cooldownShowSwipe = false;
 		self.cooldownUseAuraDisplayTime = false;
 		self.cooldownPlayFlash = true;
 		self.cooldownPaused = false;
+
+        DevTool:AddData(spellChargeInfo, "SCI");
 
 		-- if spellChargeInfo.cooldownStartTime > 0 and spellChargeInfo.cooldownDuration > 0 and spellChargeInfo.currentCharges < spellChargeInfo.maxCharges then
 		-- 	local predictedChargeGainTime = spellChargeInfo.cooldownStartTime + spellChargeInfo.cooldownDuration;
@@ -350,13 +356,17 @@ function TUI_CooldownItem:CheckCacheCooldownValuesFromCharges(timeNow)
 	end
 end
 
+function TUI_CooldownItem:RefreshIconDesaturation()
+    self:GetIconTexture():SetDesaturated(not C_Spell.IsSpellUsable(self.cooldownID))
+end
+
 function TUI_CooldownItem:RefreshData()
     self:ClearVisualDataSource();
 	-- self:RefreshAuraInstance();
 	self:RefreshSpellCooldownInfo();
 	self:RefreshSpellChargeInfo();
 	self:RefreshSpellTexture();
-	-- self:RefreshIconDesaturation();
+	self:RefreshIconDesaturation();
 	-- self:RefreshIconColor();
 	-- self:RefreshOverlayGlow();
 	self:RefreshActive();
