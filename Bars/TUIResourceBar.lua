@@ -76,20 +76,21 @@ function TUIResourceBar:UpdateValue()
     if max == 0 then return end
     self.frame:SetMinMaxValues(0, max)
     self.frame:SetValue(current)
-    if current == 0 then
-        self.text:SetText("")
-    else
-        local string_val = ""
+    -- if current == 0 then
+    --     self.text:SetText("")
+    -- else
+    --     local string_val = ""
 
-        if math.abs(current) >= 10^6 then
-            string_val = string.format("%.1fM", current / 10^6)
-        elseif math.abs(current) >= 10^3 then
-            string_val = string.format("%dk", current / 10^3)
-        else
-            string_val = string.format("%d", current)
-        end
-        self.text:SetText(string_val)
-    end
+    --     if math.abs(current) >= 10^6 then
+    --         string_val = string.format("%.1fM", current / 10^6)
+    --     elseif math.abs(current) >= 10^3 then
+    --         string_val = string.format("%dk", current / 10^3)
+    --     else
+    --         string_val = string.format("%d", current)
+    --     end
+    --     self.text:SetText(string_val)
+    -- end
+    self.text:SetText(current)
 end
 
 function TUIResourceBar:OnUpdate(elapsed)

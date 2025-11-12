@@ -1,6 +1,6 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/ ..\FrameXML\UI.xsd">
     
-	<Frame name="CooldownMainItemTemplate" mixin="TUI_MainCooldownItemMixin" virtual="true">
+	<Frame name="CooldownMainItemTemplate" mixin="TUI_CooldownItem" virtual="true">
 		<Size x="36" y="28"/>
 		<KeyValues>
 			<KeyValue key="cooldownFont" value="GameFontHighlightHugeOutline" type="string"/>
@@ -294,7 +294,7 @@
 		</Scripts>
 	</Frame>
 
-    <Frame name="TUI_MainCooldowns" mixin="TUI_EssentialCooldownViewerMixin" inherits="TUI_GridFrame" parent="UIParent">
+    <Frame name="TUI_MainCooldowns" mixin="TUI_CooldownFrame" inherits="TUI_GridFrame" parent="UIParent">
 		<KeyValues>
 			<KeyValue key="systemIndex" value="Enum.EditModeCooldownViewerSystemIndices.Essential" type="global"/>
 			<KeyValue key="systemNameString" value="HUD_EDIT_MODE_SYSTEM_ESSENTIAL_COOLDOWNS" type="global"/>

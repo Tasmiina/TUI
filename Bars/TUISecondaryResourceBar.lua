@@ -293,13 +293,15 @@ function TUISecondaryResourceBar:UpdateValue()
         for i, segment in ipairs(self.segments) do
             local fill = 0
 
-            if i <= math.floor(current) then
-                fill = 1
-            elseif i == math.ceil(current) then
-                fill = current % 1
-            else
-                fill = 0
-            end
+            -- if i <= math.floor(current) then
+            --     fill = 1
+            -- elseif i == math.ceil(current) then
+            --     fill = current % 1
+            -- else
+            --     fill = 0
+            -- end
+
+            -- print(current)
 
             segment:SetWidth((self.segmentWidth - 2) * fill)
             segment:SetColorTexture(self.color.r, self.color.g, self.color.b, 1)

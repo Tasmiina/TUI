@@ -1,4 +1,4 @@
-## Interface: 110207
+## Interface: 120000
 ## SavedVariables: TUI_DB
 
 Embeds.xml
@@ -13,6 +13,9 @@ Layout/TUIGrid.lua
 Layout/TUIGrid.xml
 Layout/TUIGroup.lua
 Layout/TUIGroup.xml
+
+Core/TUI_CooldownFrame.lua
+Core/TUI_CooldownItem.lua
 
 TUI.xml
 
