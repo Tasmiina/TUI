@@ -225,8 +225,13 @@ local function CopyCooldownList(list)
 end
 
 local function RefreshCooldownFramesForKey(key)
-    if key == "cooldowns_1" and TUI and TUI.main_cooldowns and TUI.main_cooldowns.RefreshLayout then
-        TUI.main_cooldowns:RefreshLayout()
+    if not key or not TUI or not TUI.cooldown_frames then
+        return
+    end
+
+    local frame = TUI.cooldown_frames[key]
+    if frame and frame.RefreshLayout then
+        frame:RefreshLayout()
     end
 end
 

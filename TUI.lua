@@ -40,6 +40,70 @@ local defaults = {
             anchor_to = "BOTTOM",
             anchor = "TOP"
         },
+        cooldowns_3 = {
+            pos_x = 0,
+            pos_y = -220,
+            first_row_limit = 10,
+            first_row_size_x = 36,
+            first_row_size_y = 28,
+            row_limit = 10,
+            row_size_x = 36,
+            row_size_y = 28,
+            spacing_x = 3,
+            spacing_y = 2,
+            grow_direction_up = false,
+            anchor_frame = "UIParent",
+            anchor_to = "CENTER",
+            anchor = "CENTER"
+        },
+        cooldowns_4 = {
+            pos_x = 0,
+            pos_y = -340,
+            first_row_limit = 10,
+            first_row_size_x = 36,
+            first_row_size_y = 28,
+            row_limit = 10,
+            row_size_x = 36,
+            row_size_y = 28,
+            spacing_x = 3,
+            spacing_y = 2,
+            grow_direction_up = false,
+            anchor_frame = "UIParent",
+            anchor_to = "CENTER",
+            anchor = "CENTER"
+        },
+        cooldowns_5 = {
+            pos_x = 0,
+            pos_y = -460,
+            first_row_limit = 10,
+            first_row_size_x = 36,
+            first_row_size_y = 28,
+            row_limit = 10,
+            row_size_x = 36,
+            row_size_y = 28,
+            spacing_x = 3,
+            spacing_y = 2,
+            grow_direction_up = false,
+            anchor_frame = "UIParent",
+            anchor_to = "CENTER",
+            anchor = "CENTER"
+        },
+        cooldowns_6 = {
+            pos_x = 0,
+            pos_y = -580,
+            first_row_limit = 10,
+            first_row_size_x = 36,
+            first_row_size_y = 28,
+            row_limit = 10,
+            row_size_x = 36,
+            row_size_y = 28,
+            spacing_x = 3,
+            spacing_y = 2,
+            grow_direction_up = false,
+            anchor_frame = "UIParent",
+            anchor_to = "CENTER",
+            anchor = "CENTER"
+        },
         bar_buffs = {
             pos_x = 0,
             pos_y = -30,
@@ -115,6 +179,46 @@ function TUI:OnInitialize()
     
     self.main_cooldowns = _G["TUI_MainCooldowns"]
     self.util_cooldowns = _G["TUI_UtilCooldowns"]
+    self.cooldown_frames = {
+        cooldowns_1 = self.main_cooldowns,
+        cooldowns_2 = self.util_cooldowns,
+    }
+
+    self.cooldown_frame_configs = {
+        cooldowns_1 = "main_cooldowns",
+        cooldowns_2 = "util_cooldowns",
+        cooldowns_3 = "cooldowns_3",
+        cooldowns_4 = "cooldowns_4",
+        cooldowns_5 = "cooldowns_5",
+        cooldowns_6 = "cooldowns_6",
+    }
+
+    self.cooldown_frame_names = {
+        cooldowns_1 = "Cooldowns 1",
+        cooldowns_2 = "Cooldowns 2",
+        cooldowns_3 = "Cooldowns 3",
+        cooldowns_4 = "Cooldowns 4",
+        cooldowns_5 = "Cooldowns 5",
+        cooldowns_6 = "Cooldowns 6",
+    }
+
+    for index = 3, 6 do
+        local frameKey = "cooldowns_" .. index
+        local frameName = "TUI_Cooldowns_" .. index
+        local frame = _G[frameName]
+        if frame then
+            self[frameKey] = frame
+            self.cooldown_frames[frameKey] = frame
+        end
+    end
+
+    self.cooldown_frames_by_name = {}
+    for key, frame in pairs(self.cooldown_frames) do
+        if frame and frame.GetName then
+            self.cooldown_frames_by_name[frame:GetName()] = frame
+        end
+    end
+
     self.aura_buffs = _G["TUI_AuraBuffs"]
     self.bars = _G["TUI_Bars"]
     

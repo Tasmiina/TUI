@@ -4,14 +4,89 @@
 ---@class TUI_Layout
 TUI_Layout = {}
 
+local COOLDOWN_LAYOUT_CONFIGS = {
+    { key = "cooldowns_1", configKey = "main_cooldowns" },
+    { key = "cooldowns_2", configKey = "util_cooldowns" },
+    { key = "cooldowns_3", configKey = "cooldowns_3" },
+    { key = "cooldowns_4", configKey = "cooldowns_4" },
+    { key = "cooldowns_5", configKey = "cooldowns_5" },
+    { key = "cooldowns_6", configKey = "cooldowns_6" },
+}
+
+local function ForEachCooldownFrame(callback)
+    if not TUI or not TUI.cooldown_frames then
+        return
+    end
+
+    for key, frame in pairs(TUI.cooldown_frames) do
+        if frame then
+            callback(key, frame)
+        end
+    end
+end
+
+local function ApplyCooldownLayout(key, frame, config)
+    if not frame or not config then
+        return
+    end
+
+    local anchorFrame = TUI_Layout:GetAnchorFrame(config.anchor_frame)
+    frame:ClearAllPoints()
+    frame:SetPoint(config.anchor, anchorFrame, config.anchor_to, config.pos_x, config.pos_y)
+
+    if config.first_row_limit then
+        frame.firstRowLimit = config.first_row_limit
+    end
+    if config.first_row_size_x then
+        frame.firstRowSizeX = config.first_row_size_x
+    end
+    if config.first_row_size_y then
+        frame.firstRowSizeY = config.first_row_size_y
+    end
+    if config.row_limit then
+        frame.rowLimit = config.row_limit
+    end
+    if config.row_size_x then
+        frame.rowSizeX = config.row_size_x
+    end
+    if config.row_size_y then
+        frame.rowSizeY = config.row_size_y
+    end
+    if config.spacing_x then
+        frame.spacingX = config.spacing_x
+    end
+    if config.spacing_y then
+        frame.spacingY = config.spacing_y
+    end
+    if config.grow_direction_up ~= nil then
+        frame.growDirectionUp = config.grow_direction_up
+    end
+
+    frame.alwaysUpdateLayout = true
+    frame:Layout()
+    frame:SetShown(true)
+end
+
 function TUI_Layout:ClearAnchors()
-    TUI.main_cooldowns:ClearAllPoints()
-    TUI.util_cooldowns:ClearAllPoints()
-    TUI.aura_buffs:ClearAllPoints()
-    TUI.bars:ClearAllPoints()
-    TUI.cast_bar.frame:ClearAllPoints()
-    TUI.resource_bar.frame:ClearAllPoints()
-    TUI.secondary_resource_bar.frame:ClearAllPoints()
+    ForEachCooldownFrame(function(_, frame)
+        frame:ClearAllPoints()
+    end)
+
+    if TUI.aura_buffs then
+        TUI.aura_buffs:ClearAllPoints()
+    end
+    if TUI.bars then
+        TUI.bars:ClearAllPoints()
+    end
+    if TUI.cast_bar and TUI.cast_bar.frame then
+        TUI.cast_bar.frame:ClearAllPoints()
+    end
+    if TUI.resource_bar and TUI.resource_bar.frame then
+        TUI.resource_bar.frame:ClearAllPoints()
+    end
+    if TUI.secondary_resource_bar and TUI.secondary_resource_bar.frame then
+        TUI.secondary_resource_bar.frame:ClearAllPoints()
+    end
 end
 
 function TUI_Layout:DisableBlizz()
@@ -46,9 +121,11 @@ function TUI_Layout:GetAnchorFrame(anchorFrameName)
         return TUI.resource_bar.frame
     elseif anchorFrameName == "TUI_SecondaryResourceBar" then
         return TUI.secondary_resource_bar.frame
+    elseif TUI.cooldown_frames_by_name and TUI.cooldown_frames_by_name[anchorFrameName] then
+        return TUI.cooldown_frames_by_name[anchorFrameName]
     else
         -- Fallback to UIParent if anchor frame is not found
-        return UIParent
+        return _G[anchorFrameName] or UIParent
     end
 end
 
@@ -98,73 +175,77 @@ function TUI_Layout:RefreshEditModeIndicators()
         attempts = attempts + 1
         
         -- Refresh edit mode indicators for all frames to match their current size
-        if TUI.main_cooldowns and TUI.main_cooldowns.tuiEditIndicator then
-            local visualWidth, visualHeight = TUI_Layout:GetFrameVisualBounds(TUI.main_cooldowns)
-            TUI.main_cooldowns.tuiEditIndicator:SetSize(visualWidth, visualHeight)
-            
-            -- Also update the border sizes
-            if TUI.main_cooldowns.tuiEditBorder then
-                TUI.main_cooldowns.tuiEditBorder.top:SetSize(visualWidth + 4, 2)
-                TUI.main_cooldowns.tuiEditBorder.bottom:SetSize(visualWidth + 4, 2)
-                TUI.main_cooldowns.tuiEditBorder.left:SetSize(2, visualHeight + 4)
-                TUI.main_cooldowns.tuiEditBorder.right:SetSize(2, visualHeight + 4)
+        ForEachCooldownFrame(function(_, frame)
+            local indicator = rawget(frame, "tuiEditIndicator")
+            if indicator then
+                local visualWidth, visualHeight = TUI_Layout:GetFrameVisualBounds(frame)
+                indicator:SetSize(visualWidth, visualHeight)
+
+                local border = rawget(frame, "tuiEditBorder")
+                if border then
+                    border.top:SetSize(visualWidth + 4, 2)
+                    border.bottom:SetSize(visualWidth + 4, 2)
+                    border.left:SetSize(2, visualHeight + 4)
+                    border.right:SetSize(2, visualHeight + 4)
+                end
             end
-        end
-        if TUI.util_cooldowns and TUI.util_cooldowns.tuiEditIndicator then
-            local visualWidth, visualHeight = TUI_Layout:GetFrameVisualBounds(TUI.util_cooldowns)
-            TUI.util_cooldowns.tuiEditIndicator:SetSize(visualWidth, visualHeight)
-            
-            -- Also update the border sizes
-            if TUI.util_cooldowns.tuiEditBorder then
-                TUI.util_cooldowns.tuiEditBorder.top:SetSize(visualWidth + 4, 2)
-                TUI.util_cooldowns.tuiEditBorder.bottom:SetSize(visualWidth + 4, 2)
-                TUI.util_cooldowns.tuiEditBorder.left:SetSize(2, visualHeight + 4)
-                TUI.util_cooldowns.tuiEditBorder.right:SetSize(2, visualHeight + 4)
-            end
-        end
-        if TUI.aura_buffs and TUI.aura_buffs.tuiEditIndicator then
+        end)
+        local auraIndicator = TUI.aura_buffs and rawget(TUI.aura_buffs, "tuiEditIndicator")
+        if auraIndicator then
             local visualWidth, visualHeight = TUI_Layout:GetFrameVisualBounds(TUI.aura_buffs)
-            TUI.aura_buffs.tuiEditIndicator:SetSize(visualWidth, visualHeight)
-            
-            -- Also update the border sizes
-            if TUI.aura_buffs.tuiEditBorder then
-                TUI.aura_buffs.tuiEditBorder.top:SetSize(visualWidth + 4, 2)
-                TUI.aura_buffs.tuiEditBorder.bottom:SetSize(visualWidth + 4, 2)
-                TUI.aura_buffs.tuiEditBorder.left:SetSize(2, visualHeight + 4)
-                TUI.aura_buffs.tuiEditBorder.right:SetSize(2, visualHeight + 4)
+            auraIndicator:SetSize(visualWidth, visualHeight)
+
+            local auraBorder = rawget(TUI.aura_buffs, "tuiEditBorder")
+            if auraBorder then
+                auraBorder.top:SetSize(visualWidth + 4, 2)
+                auraBorder.bottom:SetSize(visualWidth + 4, 2)
+                auraBorder.left:SetSize(2, visualHeight + 4)
+                auraBorder.right:SetSize(2, visualHeight + 4)
             end
         end
-        if TUI.bars and TUI.bars.tuiEditIndicator then
+        local barsIndicator = TUI.bars and rawget(TUI.bars, "tuiEditIndicator")
+        if barsIndicator then
             local visualWidth, visualHeight = TUI_Layout:GetFrameVisualBounds(TUI.bars)
-            TUI.bars.tuiEditIndicator:SetSize(visualWidth, visualHeight)
-            
-            -- Also update the border sizes
-            if TUI.bars.tuiEditBorder then
-                TUI.bars.tuiEditBorder.top:SetSize(visualWidth + 4, 2)
-                TUI.bars.tuiEditBorder.bottom:SetSize(visualWidth + 4, 2)
-                TUI.bars.tuiEditBorder.left:SetSize(2, visualHeight + 4)
-                TUI.bars.tuiEditBorder.right:SetSize(2, visualHeight + 4)
+            barsIndicator:SetSize(visualWidth, visualHeight)
+
+            local barsBorder = rawget(TUI.bars, "tuiEditBorder")
+            if barsBorder then
+                barsBorder.top:SetSize(visualWidth + 4, 2)
+                barsBorder.bottom:SetSize(visualWidth + 4, 2)
+                barsBorder.left:SetSize(2, visualHeight + 4)
+                barsBorder.right:SetSize(2, visualHeight + 4)
             end
         end
-        if TUI.cast_bar and TUI.cast_bar.tuiEditIndicator then
-            TUI.cast_bar.tuiEditIndicator:SetAllPoints()
+        local castIndicator = TUI.cast_bar and rawget(TUI.cast_bar, "tuiEditIndicator")
+        if castIndicator then
+            castIndicator:SetAllPoints()
         end
-        if TUI.resource_bar and TUI.resource_bar.tuiEditIndicator then
-            TUI.resource_bar.tuiEditIndicator:SetAllPoints()
+        local resourceIndicator = TUI.resource_bar and rawget(TUI.resource_bar, "tuiEditIndicator")
+        if resourceIndicator then
+            resourceIndicator:SetAllPoints()
         end
-        if TUI.secondary_resource_bar and TUI.secondary_resource_bar.tuiEditIndicator then
-            TUI.secondary_resource_bar.tuiEditIndicator:SetAllPoints()
+        local secondaryIndicator = TUI.secondary_resource_bar and rawget(TUI.secondary_resource_bar, "tuiEditIndicator")
+        if secondaryIndicator then
+            secondaryIndicator:SetAllPoints()
         end
         
         -- Refresh anchor indicators for all frames
-        local framesToRefresh = {
-            TUI.main_cooldowns, TUI.util_cooldowns, TUI.aura_buffs, TUI.bars,
-            TUI.cast_bar, TUI.resource_bar, TUI.secondary_resource_bar
-        }
+        local framesToRefresh = {}
+        ForEachCooldownFrame(function(_, frame)
+            table.insert(framesToRefresh, frame)
+        end)
+        table.insert(framesToRefresh, TUI.aura_buffs)
+        table.insert(framesToRefresh, TUI.bars)
+        table.insert(framesToRefresh, TUI.cast_bar)
+        table.insert(framesToRefresh, TUI.resource_bar)
+        table.insert(framesToRefresh, TUI.secondary_resource_bar)
         
         for _, frame in ipairs(framesToRefresh) do
-            if frame and frame.tuiAnchorIndicator then
-                TUI_EditMode:UpdateAnchorIndicator(frame)
+            if frame then
+                local anchorIndicator = rawget(frame, "tuiAnchorIndicator")
+                if anchorIndicator then
+                    TUI_EditMode:UpdateAnchorIndicator(frame)
+                end
             end
         end
         
@@ -176,53 +257,24 @@ end
 function TUI_Layout:UpdateLayout()
     TUI_Layout:ClearAnchors()
 
-    -- Update MainCooldowns according to settings
-    local mainCooldownsAnchor = TUI_Layout:GetAnchorFrame(TUI.db.profile.main_cooldowns.anchor_frame)
-    TUI.main_cooldowns:SetPoint(TUI.db.profile.main_cooldowns.anchor, mainCooldownsAnchor, TUI.db.profile.main_cooldowns.anchor_to, TUI.db.profile.main_cooldowns.pos_x, TUI.db.profile.main_cooldowns.pos_y)
+    local profile = TUI.db.profile
 
-    TUI.main_cooldowns.firstRowLimit = TUI.db.profile.main_cooldowns.first_row_limit
-    TUI.main_cooldowns.firstRowSizeX = TUI.db.profile.main_cooldowns.first_row_size_x
-    TUI.main_cooldowns.firstRowSizeY = TUI.db.profile.main_cooldowns.first_row_size_y
-    
-    TUI.main_cooldowns.rowLimit = TUI.db.profile.main_cooldowns.row_limit
-    TUI.main_cooldowns.rowSizeX = TUI.db.profile.main_cooldowns.row_size_x
-    TUI.main_cooldowns.rowSizeY = TUI.db.profile.main_cooldowns.row_size_y
-
-    TUI.main_cooldowns.spacingX = TUI.db.profile.main_cooldowns.spacing_x
-    TUI.main_cooldowns.spacingY = TUI.db.profile.main_cooldowns.spacing_y
-    TUI.main_cooldowns.growDirectionUp = TUI.db.profile.main_cooldowns.grow_direction_up
-
-    TUI.main_cooldowns.alwaysUpdateLayout = true
-
-    TUI.main_cooldowns:Layout()
-    TUI.main_cooldowns:Show()
-    
-    -- Force the frame to be visible and ensure it stays visible
-    TUI.main_cooldowns:SetShown(true)
-
-    -- Update UtilCooldowns according to settings
-    local utilCooldownsAnchor = TUI_Layout:GetAnchorFrame(TUI.db.profile.util_cooldowns.anchor_frame)
-    TUI.util_cooldowns:SetPoint(TUI.db.profile.util_cooldowns.anchor, utilCooldownsAnchor, TUI.db.profile.util_cooldowns.anchor_to, TUI.db.profile.util_cooldowns.pos_x, TUI.db.profile.util_cooldowns.pos_y)
-
-    TUI.util_cooldowns.firstRowLimit = TUI.db.profile.util_cooldowns.first_row_limit
-    TUI.util_cooldowns.firstRowSizeX = TUI.db.profile.util_cooldowns.first_row_size_x
-    TUI.util_cooldowns.firstRowSizeY = TUI.db.profile.util_cooldowns.first_row_size_y
-    
-    TUI.util_cooldowns.rowLimit = TUI.db.profile.util_cooldowns.row_limit
-    TUI.util_cooldowns.rowSizeX = TUI.db.profile.util_cooldowns.row_size_x
-    TUI.util_cooldowns.rowSizeY = TUI.db.profile.util_cooldowns.row_size_y
-
-    TUI.util_cooldowns.spacingX = TUI.db.profile.util_cooldowns.spacing_x
-    TUI.util_cooldowns.spacingY = TUI.db.profile.util_cooldowns.spacing_y
-    TUI.util_cooldowns.growDirectionUp = TUI.db.profile.util_cooldowns.grow_direction_up
-
-    TUI.util_cooldowns.alwaysUpdateLayout = true
-
-    TUI.util_cooldowns:Layout()
-    TUI.util_cooldowns:Show()
-    
-    -- Force the frame to be visible and ensure it stays visible
-    TUI.util_cooldowns:SetShown(true)
+    if profile and TUI.cooldown_frames then
+        for _, entry in ipairs(COOLDOWN_LAYOUT_CONFIGS) do
+            local frame = TUI.cooldown_frames[entry.key]
+            local config = profile[entry.configKey]
+            if not config and TUI.defaults and TUI.defaults.profile then
+                local defaultConfig = TUI.defaults.profile[entry.configKey]
+                if defaultConfig then
+                    config = CopyTable(defaultConfig)
+                    profile[entry.configKey] = config
+                end
+            end
+            if frame and config then
+                ApplyCooldownLayout(entry.key, frame, config)
+            end
+        end
+    end
 
     -- Update AuraBuffs according to settings
     local auraBuffsAnchor = TUI_Layout:GetAnchorFrame(TUI.db.profile.aura_buffs.anchor_frame)
@@ -308,9 +360,17 @@ end
 function TUI_Layout:GetFrameForConfigKey(configKey)
     -- Map config keys to their corresponding frames
     if configKey == "main_cooldowns" then
-        return TUI.main_cooldowns
+        return TUI.cooldown_frames and TUI.cooldown_frames.cooldowns_1
     elseif configKey == "util_cooldowns" then
-        return TUI.util_cooldowns
+        return TUI.cooldown_frames and TUI.cooldown_frames.cooldowns_2
+    elseif configKey == "cooldowns_3" then
+        return TUI.cooldown_frames and TUI.cooldown_frames.cooldowns_3
+    elseif configKey == "cooldowns_4" then
+        return TUI.cooldown_frames and TUI.cooldown_frames.cooldowns_4
+    elseif configKey == "cooldowns_5" then
+        return TUI.cooldown_frames and TUI.cooldown_frames.cooldowns_5
+    elseif configKey == "cooldowns_6" then
+        return TUI.cooldown_frames and TUI.cooldown_frames.cooldowns_6
     elseif configKey == "aura_buffs" then
         return TUI.aura_buffs
     elseif configKey == "bar_buffs" then
@@ -327,8 +387,12 @@ end
 
 function TUI_Layout:ApplyDatabaseAnchorSettingsToAllFrames()
     -- Apply database anchor settings to all frames when entering edit mode
-    TUI_Layout:ApplyDatabaseAnchorSettings(TUI.main_cooldowns, "main_cooldowns")
-    TUI_Layout:ApplyDatabaseAnchorSettings(TUI.util_cooldowns, "util_cooldowns")
+    for _, entry in ipairs(COOLDOWN_LAYOUT_CONFIGS) do
+        local frame = TUI.cooldown_frames and TUI.cooldown_frames[entry.key]
+        if frame then
+            TUI_Layout:ApplyDatabaseAnchorSettings(frame, entry.configKey)
+        end
+    end
     TUI_Layout:ApplyDatabaseAnchorSettings(TUI.aura_buffs, "aura_buffs")
     TUI_Layout:ApplyDatabaseAnchorSettings(TUI.bars, "bar_buffs")
     TUI_Layout:ApplyDatabaseAnchorSettings(TUI.cast_bar.frame, "cast_bar")

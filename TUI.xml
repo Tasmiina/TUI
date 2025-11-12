@@ -72,7 +72,7 @@
 		</Scripts>
 	</Frame>
 
-	<Frame name="CooldownUtilityItemTemplate" mixin="TUI_UtilCooldownItemMixin" virtual="true">
+	<Frame name="CooldownUtilityItemTemplate" mixin="TUI_CooldownItem" virtual="true">
 		<Size x="36" y="28"/>
 		<KeyValues>
 			<KeyValue key="cooldownFont" value="GameFontHighlightOutline" type="string"/>
@@ -296,20 +296,18 @@
 
     <Frame name="TUI_MainCooldowns" mixin="TUI_CooldownFrame" inherits="TUI_GridFrame" parent="UIParent">
 		<KeyValues>
-			<KeyValue key="systemIndex" value="Enum.EditModeCooldownViewerSystemIndices.Essential" type="global"/>
-			<KeyValue key="systemNameString" value="HUD_EDIT_MODE_SYSTEM_ESSENTIAL_COOLDOWNS" type="global"/>
 			<KeyValue key="itemTemplate" value="CooldownMainItemTemplate" type="string"/>
-			<KeyValue key="cooldownViewerCategory" value="Enum.CooldownViewerCategory.Essential" type="global"/>
 			<KeyValue key="layoutIndex" value="10" type="number"/>
 			<KeyValue key="ignoreInLayoutWhenActionBarIsOverriden" value="false" type="boolean"/>
+            <KeyValue key="cooldownList" value="cooldowns_1" type="string"/>
 
             <KeyValue key="firstRowLimit" value="9" type="number"/>
             <KeyValue key="firstRowSizeX" value="36" type="number"/>
             <KeyValue key="firstRowSizeY" value="28" type="number"/>
 
             <KeyValue key="rowLimit" value="9" type="number"/>
-            <KeyValue key="rowSizeX" value="34" type="number"/>
-            <KeyValue key="rowSizeY" value="26" type="number"/>
+            <KeyValue key="rowSizeX" value="36" type="number"/>
+            <KeyValue key="rowSizeY" value="28" type="number"/>
 
             <KeyValue key="spacingX" value="3" type="number"/>
             <KeyValue key="spacingY" value="2" type="number"/>
@@ -325,22 +323,20 @@
 		</Scripts>
 	</Frame>
 
-	<Frame name="TUI_UtilCooldowns" mixin="TUI_UtilityCooldownViewerMixin" inherits="TUI_GridFrame" parent="UIParent">
+	<Frame name="TUI_UtilCooldowns" mixin="TUI_CooldownFrame" inherits="TUI_GridFrame" parent="UIParent">
 		<KeyValues>
-			<KeyValue key="systemIndex" value="Enum.EditModeCooldownViewerSystemIndices.Utility" type="global"/>
-			<KeyValue key="systemNameString" value="HUD_EDIT_MODE_SYSTEM_UTILITY_COOLDOWNS" type="global"/>
-			<KeyValue key="itemTemplate" value="CooldownUtilityItemTemplate" type="string"/>
-			<KeyValue key="cooldownViewerCategory" value="Enum.CooldownViewerCategory.Utility" type="global"/>
+			<KeyValue key="itemTemplate" value="CooldownMainItemTemplate" type="string"/>
 			<KeyValue key="layoutIndex" value="11" type="number"/>
 			<KeyValue key="ignoreInLayoutWhenActionBarIsOverriden" value="false" type="boolean"/>
-			
+            <KeyValue key="cooldownList" value="cooldowns_2" type="string"/>
+
             <KeyValue key="firstRowLimit" value="9" type="number"/>
             <KeyValue key="firstRowSizeX" value="36" type="number"/>
             <KeyValue key="firstRowSizeY" value="28" type="number"/>
 
             <KeyValue key="rowLimit" value="9" type="number"/>
-            <KeyValue key="rowSizeX" value="34" type="number"/>
-            <KeyValue key="rowSizeY" value="26" type="number"/>
+            <KeyValue key="rowSizeX" value="36" type="number"/>
+            <KeyValue key="rowSizeY" value="28" type="number"/>
 
             <KeyValue key="spacingX" value="3" type="number"/>
             <KeyValue key="spacingY" value="2" type="number"/>
@@ -355,6 +351,119 @@
 		</Scripts>
 	</Frame>
 
+	<Frame name="TUI_Cooldowns_3" mixin="TUI_CooldownFrame" inherits="TUI_GridFrame" parent="UIParent">
+		<KeyValues>
+			<KeyValue key="itemTemplate" value="CooldownMainItemTemplate" type="string"/>
+			<KeyValue key="layoutIndex" value="12" type="number"/>
+			<KeyValue key="ignoreInLayoutWhenActionBarIsOverriden" value="false" type="boolean"/>
+            <KeyValue key="cooldownList" value="cooldowns_3" type="string"/>
+
+            <KeyValue key="firstRowLimit" value="9" type="number"/>
+            <KeyValue key="firstRowSizeX" value="36" type="number"/>
+            <KeyValue key="firstRowSizeY" value="28" type="number"/>
+
+            <KeyValue key="rowLimit" value="9" type="number"/>
+            <KeyValue key="rowSizeX" value="36" type="number"/>
+            <KeyValue key="rowSizeY" value="28" type="number"/>
+
+            <KeyValue key="spacingX" value="3" type="number"/>
+            <KeyValue key="spacingY" value="2" type="number"/>
+            
+            <KeyValue key="growDirectionUp" value="false" type="boolean"/>
+		</KeyValues>
+		<Scripts>
+			<OnLoad method="OnLoad"/>
+			<OnShow method="OnShow"/>
+			<OnHide method="OnHide"/>
+			<OnEvent method="OnEvent"/>
+		</Scripts>
+	</Frame>
+
+	<Frame name="TUI_Cooldowns_4" mixin="TUI_CooldownFrame" inherits="TUI_GridFrame" parent="UIParent">
+		<KeyValues>
+			<KeyValue key="itemTemplate" value="CooldownMainItemTemplate" type="string"/>
+			<KeyValue key="layoutIndex" value="13" type="number"/>
+			<KeyValue key="ignoreInLayoutWhenActionBarIsOverriden" value="false" type="boolean"/>
+            <KeyValue key="cooldownList" value="cooldowns_4" type="string"/>
+
+            <KeyValue key="firstRowLimit" value="9" type="number"/>
+            <KeyValue key="firstRowSizeX" value="36" type="number"/>
+            <KeyValue key="firstRowSizeY" value="28" type="number"/>
+
+            <KeyValue key="rowLimit" value="9" type="number"/>
+            <KeyValue key="rowSizeX" value="36" type="number"/>
+            <KeyValue key="rowSizeY" value="28" type="number"/>
+
+            <KeyValue key="spacingX" value="3" type="number"/>
+            <KeyValue key="spacingY" value="2" type="number"/>
+            
+            <KeyValue key="growDirectionUp" value="false" type="boolean"/>
+		</KeyValues>
+		<Scripts>
+			<OnLoad method="OnLoad"/>
+			<OnShow method="OnShow"/>
+			<OnHide method="OnHide"/>
+			<OnEvent method="OnEvent"/>
+		</Scripts>
+	</Frame>
+
+	<Frame name="TUI_Cooldowns_5" mixin="TUI_CooldownFrame" inherits="TUI_GridFrame" parent="UIParent">
+		<KeyValues>
+			<KeyValue key="itemTemplate" value="CooldownMainItemTemplate" type="string"/>
+			<KeyValue key="layoutIndex" value="14" type="number"/>
+			<KeyValue key="ignoreInLayoutWhenActionBarIsOverriden" value="false" type="boolean"/>
+            <KeyValue key="cooldownList" value="cooldowns_5" type="string"/>
+
+            <KeyValue key="firstRowLimit" value="9" type="number"/>
+            <KeyValue key="firstRowSizeX" value="36" type="number"/>
+            <KeyValue key="firstRowSizeY" value="28" type="number"/>
+
+            <KeyValue key="rowLimit" value="9" type="number"/>
+            <KeyValue key="rowSizeX" value="36" type="number"/>
+            <KeyValue key="rowSizeY" value="28" type="number"/>
+
+            <KeyValue key="spacingX" value="3" type="number"/>
+            <KeyValue key="spacingY" value="2" type="number"/>
+            
+            <KeyValue key="growDirectionUp" value="false" type="boolean"/>
+		</KeyValues>
+		<Scripts>
+			<OnLoad method="OnLoad"/>
+			<OnShow method="OnShow"/>
+			<OnHide method="OnHide"/>
+			<OnEvent method="OnEvent"/>
+		</Scripts>
+	</Frame>
+
+	<Frame name="TUI_Cooldowns_6" mixin="TUI_CooldownFrame" inherits="TUI_GridFrame" parent="UIParent">
+		<KeyValues>
+			<KeyValue key="itemTemplate" value="CooldownMainItemTemplate" type="string"/>
+			<KeyValue key="layoutIndex" value="15" type="number"/>
+			<KeyValue key="ignoreInLayoutWhenActionBarIsOverriden" value="false" type="boolean"/>
+            <KeyValue key="cooldownList" value="cooldowns_6" type="string"/>
+
+            <KeyValue key="firstRowLimit" value="9" type="number"/>
+            <KeyValue key="firstRowSizeX" value="36" type="number"/>
+            <KeyValue key="firstRowSizeY" value="28" type="number"/>
+
+            <KeyValue key="rowLimit" value="9" type="number"/>
+            <KeyValue key="rowSizeX" value="36" type="number"/>
+            <KeyValue key="rowSizeY" value="28" type="number"/>
+
+            <KeyValue key="spacingX" value="3" type="number"/>
+            <KeyValue key="spacingY" value="2" type="number"/>
+            
+            <KeyValue key="growDirectionUp" value="false" type="boolean"/>
+		</KeyValues>
+		<Scripts>
+			<OnLoad method="OnLoad"/>
+			<OnShow method="OnShow"/>
+			<OnHide method="OnHide"/>
+			<OnEvent method="OnEvent"/>
+		</Scripts>
+	</Frame>
+
+	<!-- mixin="TUI_BuffCooldownViewerMixin"  -->
 	<Frame name="TUI_AuraBuffs" mixin="TUI_BuffCooldownViewerMixin" inherits="TUI_GroupFrame" parent="UIParent">
 		<KeyValues>
 			<KeyValue key="systemIndex" value="Enum.EditModeCooldownViewerSystemIndices.BuffIcon" type="global"/>
@@ -376,14 +485,15 @@
             
             <KeyValue key="horizontal" value="true" type="boolean"/>
 		</KeyValues>
-		<Scripts>
+		<!-- <Scripts>
 			<OnLoad method="OnLoad"/>
 			<OnShow method="OnShow"/>
 			<OnHide method="OnHide"/>
 			<OnEvent method="OnEvent"/>
-		</Scripts>
+		</Scripts> -->
 	</Frame>
 
+	<!-- mixin="TUI_BarCooldownViewerMixin"  -->
 	<Frame name="TUI_Bars" mixin="TUI_BarCooldownViewerMixin" inherits="TUI_GroupFrame" parent="UIParent">
 		<KeyValues>
 			<KeyValue key="systemIndex" value="Enum.EditModeCooldownViewerSystemIndices.BuffBar" type="global"/>
@@ -405,12 +515,12 @@
             
             <KeyValue key="horizontal" value="false" type="boolean"/>
 		</KeyValues>
-		<Scripts>
+		<!-- <Scripts>
 			<OnLoad method="OnLoad"/>
 			<OnShow method="OnShow"/>
 			<OnHide method="OnHide"/>
 			<OnEvent method="OnEvent"/>
-		</Scripts>
+		</Scripts> -->
 	</Frame>
 
 </Ui>

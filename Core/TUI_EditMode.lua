@@ -1,3 +1,26 @@
+local COOLDOWN_FRAME_LABELS = {
+    cooldowns_1 = "Cooldowns 1",
+    cooldowns_2 = "Cooldowns 2",
+    cooldowns_3 = "Cooldowns 3",
+    cooldowns_4 = "Cooldowns 4",
+    cooldowns_5 = "Cooldowns 5",
+    cooldowns_6 = "Cooldowns 6",
+}
+
+local function IterateCooldownFrames(callback)
+    if not TUI or not TUI.cooldown_frames then
+        return
+    end
+
+    for key, frame in pairs(TUI.cooldown_frames) do
+        if frame then
+            local configKey = TUI.cooldown_frame_configs and TUI.cooldown_frame_configs[key] or key
+            local label = (TUI.cooldown_frame_names and TUI.cooldown_frame_names[key]) or COOLDOWN_FRAME_LABELS[key] or key
+            callback(key, frame, configKey, label)
+        end
+    end
+end
+
 -- TUI Edit Mode Module
 -- Handles all edit mode functionality including dragging, indicators, and grid
 
@@ -47,69 +70,38 @@ function TUI_EditMode:ContinueEditModeSetup()
     TUI_EditMode:EnableElementDragging()
     
     
-    -- Force main cooldowns to update its layout periodically in edit mode
-    if TUI.main_cooldowns then
-        TUI.main_cooldowns.tuiEditModeForced = true
-        TUI.main_cooldowns:SetShown(true)
-        
-        TUI.main_cooldowns.tuiEditModeUpdateFrame = CreateFrame("Frame")
-        TUI.main_cooldowns.tuiEditModeUpdateFrame:SetScript("OnUpdate", function(self)
-            if TUI.editModeEnabled and TUI.main_cooldowns and TUI.main_cooldowns.tuiEditModeForced then
-                -- Force layout update every few frames
-                TUI.main_cooldowns:Layout()
-                TUI.main_cooldowns:SetShown(true)
-                
-                -- Also refresh the edit mode indicator size
-                if TUI.main_cooldowns.tuiEditIndicator then
-                    local visualWidth, visualHeight = TUI_Layout:GetFrameVisualBounds(TUI.main_cooldowns)
-                    TUI.main_cooldowns.tuiEditIndicator:SetSize(visualWidth, visualHeight)
-                    
-                    -- Update border sizes too
-                    if TUI.main_cooldowns.tuiEditBorder then
-                        TUI.main_cooldowns.tuiEditBorder.top:SetSize(visualWidth + 4, 2)
-                        TUI.main_cooldowns.tuiEditBorder.bottom:SetSize(visualWidth + 4, 2)
-                        TUI.main_cooldowns.tuiEditBorder.left:SetSize(2, visualHeight + 4)
-                        TUI.main_cooldowns.tuiEditBorder.right:SetSize(2, visualHeight + 4)
+    IterateCooldownFrames(function(_, frame)
+        frame.tuiEditModeForced = true
+        frame:SetShown(true)
+
+        if frame.tuiEditModeUpdateFrame then
+            frame.tuiEditModeUpdateFrame:SetScript("OnUpdate", nil)
+        end
+
+        frame.tuiEditModeUpdateFrame = CreateFrame("Frame")
+        frame.tuiEditModeUpdateFrame:SetScript("OnUpdate", function(self)
+            if TUI.editModeEnabled and frame and frame.tuiEditModeForced then
+                frame:Layout()
+                frame:SetShown(true)
+
+                local indicator = rawget(frame, "tuiEditIndicator")
+                if indicator then
+                    local visualWidth, visualHeight = TUI_Layout:GetFrameVisualBounds(frame)
+                    indicator:SetSize(visualWidth, visualHeight)
+
+                    local border = rawget(frame, "tuiEditBorder")
+                    if border then
+                        border.top:SetSize(visualWidth + 4, 2)
+                        border.bottom:SetSize(visualWidth + 4, 2)
+                        border.left:SetSize(2, visualHeight + 4)
+                        border.right:SetSize(2, visualHeight + 4)
                     end
                 end
             else
-                -- Clean up when edit mode is disabled
                 self:SetScript("OnUpdate", nil)
             end
         end)
-    end
-    
-    -- Force util cooldowns to update its layout periodically in edit mode
-    if TUI.util_cooldowns then
-        TUI.util_cooldowns.tuiEditModeForced = true
-        TUI.util_cooldowns:SetShown(true)
-        
-        TUI.util_cooldowns.tuiEditModeUpdateFrame = CreateFrame("Frame")
-        TUI.util_cooldowns.tuiEditModeUpdateFrame:SetScript("OnUpdate", function(self)
-            if TUI.editModeEnabled and TUI.util_cooldowns and TUI.util_cooldowns.tuiEditModeForced then
-                -- Force layout update every few frames
-                TUI.util_cooldowns:Layout()
-                TUI.util_cooldowns:SetShown(true)
-                
-                -- Also refresh the edit mode indicator size
-                if TUI.util_cooldowns.tuiEditIndicator then
-                    local visualWidth, visualHeight = TUI_Layout:GetFrameVisualBounds(TUI.util_cooldowns)
-                    TUI.util_cooldowns.tuiEditIndicator:SetSize(visualWidth, visualHeight)
-                    
-                    -- Update border sizes too
-                    if TUI.util_cooldowns.tuiEditBorder then
-                        TUI.util_cooldowns.tuiEditBorder.top:SetSize(visualWidth + 4, 2)
-                        TUI.util_cooldowns.tuiEditBorder.bottom:SetSize(visualWidth + 4, 2)
-                        TUI.util_cooldowns.tuiEditBorder.left:SetSize(2, visualHeight + 4)
-                        TUI.util_cooldowns.tuiEditBorder.right:SetSize(2, visualHeight + 4)
-                    end
-                end
-            else
-                -- Clean up when edit mode is disabled
-                self:SetScript("OnUpdate", nil)
-            end
-        end)
-    end
+    end)
     
     -- Force aura buffs to update its layout periodically in edit mode
     if TUI.aura_buffs then
@@ -183,12 +175,12 @@ end
 
 function TUI_EditMode:AddTemporaryChildrenForEditMode()
     -- Add temporary children to frames that have less than 3 children
-    local framesToCheck = {
-        {frame = TUI.main_cooldowns, name = "Main Cooldowns", childCount = 3},
-        {frame = TUI.util_cooldowns, name = "Util Cooldowns", childCount = 3},
-        {frame = TUI.aura_buffs, name = "Aura Buffs", childCount = 3},
-        {frame = TUI.bars, name = "Bars", childCount = 3}
-    }
+    local framesToCheck = {}
+    IterateCooldownFrames(function(key, frame, _, label)
+        table.insert(framesToCheck, { frame = frame, name = label or key, childCount = 3 })
+    end)
+    table.insert(framesToCheck, { frame = TUI.aura_buffs, name = "Aura Buffs", childCount = 3 })
+    table.insert(framesToCheck, { frame = TUI.bars, name = "Bars", childCount = 3 })
     
     for _, frameInfo in ipairs(framesToCheck) do
         local frame = frameInfo.frame
@@ -254,7 +246,12 @@ end
 
 function TUI_EditMode:RemoveTemporaryChildren()
     -- Remove all temporary children from frames
-    local framesToCheck = {TUI.main_cooldowns, TUI.util_cooldowns, TUI.aura_buffs, TUI.bars}
+    local framesToCheck = {}
+    IterateCooldownFrames(function(_, frame)
+        table.insert(framesToCheck, frame)
+    end)
+    table.insert(framesToCheck, TUI.aura_buffs)
+    table.insert(framesToCheck, TUI.bars)
     
     for _, frame in ipairs(framesToCheck) do
         if frame then
@@ -280,23 +277,13 @@ function TUI_EditMode:ExitEditMode()
         TUI.secondary_resource_bar.tuiEditModeForced = false
     end
     
-    -- Clear main cooldowns forced visibility and update frame
-    if TUI.main_cooldowns then
-        TUI.main_cooldowns.tuiEditModeForced = false
-        if TUI.main_cooldowns.tuiEditModeUpdateFrame then
-            TUI.main_cooldowns.tuiEditModeUpdateFrame:SetScript("OnUpdate", nil)
-            TUI.main_cooldowns.tuiEditModeUpdateFrame = nil
+    IterateCooldownFrames(function(_, frame)
+        frame.tuiEditModeForced = false
+        if frame.tuiEditModeUpdateFrame then
+            frame.tuiEditModeUpdateFrame:SetScript("OnUpdate", nil)
+            frame.tuiEditModeUpdateFrame = nil
         end
-    end
-    
-    -- Clear util cooldowns forced visibility and update frame
-    if TUI.util_cooldowns then
-        TUI.util_cooldowns.tuiEditModeForced = false
-        if TUI.util_cooldowns.tuiEditModeUpdateFrame then
-            TUI.util_cooldowns.tuiEditModeUpdateFrame:SetScript("OnUpdate", nil)
-            TUI.util_cooldowns.tuiEditModeUpdateFrame = nil
-        end
-    end
+    end)
     
     -- Clear aura buffs forced visibility and update frame
     if TUI.aura_buffs then
@@ -417,8 +404,9 @@ end
 
 function TUI_EditMode:EnableElementDragging()
     -- Enable dragging for all UI elements with user-friendly names
-    TUI_EditMode:EnableDraggingForElement(TUI.main_cooldowns, "main_cooldowns", "Main Cooldowns")
-    TUI_EditMode:EnableDraggingForElement(TUI.util_cooldowns, "util_cooldowns", "Utility Cooldowns")
+    IterateCooldownFrames(function(key, frame, configKey, label)
+        TUI_EditMode:EnableDraggingForElement(frame, configKey, label)
+    end)
     TUI_EditMode:EnableDraggingForElement(TUI.aura_buffs, "aura_buffs", "Aura Buffs")
     TUI_EditMode:EnableDraggingForElement(TUI.bars, "bar_buffs", "Bar Buffs")
     TUI_EditMode:EnableDraggingForElement(TUI.cast_bar.frame, "cast_bar", "Cast Bar")
@@ -428,8 +416,9 @@ end
 
 function TUI_EditMode:DisableElementDragging()
     -- Disable dragging for all UI elements
-    TUI_EditMode:DisableDraggingForElement(TUI.main_cooldowns)
-    TUI_EditMode:DisableDraggingForElement(TUI.util_cooldowns)
+    IterateCooldownFrames(function(_, frame)
+        TUI_EditMode:DisableDraggingForElement(frame)
+    end)
     TUI_EditMode:DisableDraggingForElement(TUI.aura_buffs)
     TUI_EditMode:DisableDraggingForElement(TUI.bars)
     TUI_EditMode:DisableDraggingForElement(TUI.cast_bar.frame)
@@ -724,10 +713,19 @@ function TUI_EditMode:GetConfigKeyForFrame(frame)
     -- Map frame names to their configuration keys
     local frameName = frame:GetName()
     
-    if frameName == "TUI_MainCooldowns" then
-        return "main_cooldowns"
-    elseif frameName == "TUI_UtilCooldowns" then
-        return "util_cooldowns"
+    if TUI and TUI.cooldown_frames then
+        for key, cooldownFrame in pairs(TUI.cooldown_frames) do
+            local expectedName = cooldownFrame and cooldownFrame.GetName and cooldownFrame:GetName()
+            if frame == cooldownFrame or (expectedName and frameName == expectedName) then
+                return TUI.cooldown_frame_configs and TUI.cooldown_frame_configs[key] or key
+            end
+        end
+    end
+
+    if frameName == "TUI_AuraBuffs" then
+        return "aura_buffs"
+    elseif frameName == "TUI_Bars" then
+        return "bar_buffs"
     elseif frameName == "TUI_AuraBuffs" then
         return "aura_buffs"
     elseif frameName == "TUI_Bars" then
