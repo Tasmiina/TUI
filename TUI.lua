@@ -86,6 +86,14 @@ local defaults = {
             pos_y = 0,
             width = 400,
             height = 15
+        },
+        spells = {
+            cooldowns_1 = {},
+            cooldowns_2 = {},
+            cooldowns_3 = {},
+            cooldowns_4 = {},
+            cooldowns_5 = {},
+            cooldowns_6 = {},
         }
     }
 }
@@ -126,16 +134,36 @@ function TUI:OnInitialize()
     self.isInitializing = false
 end
 
+local function NormalizeSlashInput(msg)
+    if not msg then
+        return ""
+    end
+
+    local trimmed = msg:match("^%s*(.-)%s*$")
+    if not trimmed or trimmed == "" then
+        return ""
+    end
+
+    return trimmed:lower()
+end
+
 function TUI:SlashCommand(msg)
-    if msg == "edit" then
+    local command = NormalizeSlashInput(msg)
+
+    if command == "edit" then
         TUI_EditMode:ToggleEditMode()
-    elseif msg == "reset" then
+    elseif command == "reset" then
         TUI_Layout:ResetPositions()
-    elseif msg == "help" then
+    elseif command == "spell" or command == "spells" then
+        TUI_SpellPicker:Show()
+    elseif command == "help" or command == "" then
         print("|cff88ff88TUI Commands:|r")
         print("|cffffffff/tui edit|r - Toggle edit mode")
         print("|cffffffff/tui reset|r - Reset all element positions")
+        print("|cffffffff/tui spell|r - Open the spell picker window")
         print("|cffffffff/tui help|r - Show this help")
+    else
+        print(string.format("|cffff8888TUI:|r Unknown command '%s'. Type /tui help for options.", command))
     end
 end
 

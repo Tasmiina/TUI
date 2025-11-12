@@ -17,6 +17,13 @@ function TUI_CooldownFrame:OnLoad()
 
     self.itemFramePool = CreateFramePool("FRAME", self:GetItemContainerFrame(), self.itemTemplate, itemResetCallback);
 
+    if not self.cooldownListKey then
+        self.cooldownListKey = self.cooldownList or "cooldowns_1"
+    end
+
+    self.cooldownList = nil
+    self.cooldownEntries = {}
+
 	self:UpdateShownState();
 end
 
@@ -32,11 +39,18 @@ end
 function TUI_CooldownFrame:BuildCooldownList()
     local baseList = self:GetCooldownIDsBase()
 
-    self.cooldownList = {}
+    self.cooldownEntries = {}
 
-    for _, item in pairs(baseList) do
-        if self:CooldownValid(item) then
-            table.insert(self.cooldownList, item)
+    local seen = {}
+
+    for _, item in ipairs(baseList) do
+        local id = tonumber(item.id) or item.id
+        if id and not seen[id] and self:CooldownValid(item) then
+            table.insert(self.cooldownEntries, {
+                id = id,
+                type = item.type or "spell"
+            })
+            seen[id] = true
         end
     end
 end
@@ -171,44 +185,20 @@ end
 -- https://warcraft.wiki.gg/wiki/API_C_Item.IsEquippedItem
 
 function TUI_CooldownFrame:GetCooldownIDsBase()
-    return {
-        {
-            id = 1226019,
-            type = "spell"
-        },
-        {
-            id = 1245412,
-            type = "spell"
-        },
-        {
-            id = 473728,
-            type = "spell"
-        },
-        {
-            id = 471306,
-            type = "spell"
-        },
-        {
-            id = 1234796,
-            type = "spell"
-        },
-        {
-            id = 198793,
-            type = "spell"
-        },
-        {
-            id = 242402,
-            type = "item"
-        },
-        {
-            id = 132157,
-            type = "spell"
-        }
-    }
+    local listKey = self.cooldownListKey or "cooldowns_1"
+
+    if TUI and TUI.db and TUI.db.profile and TUI.db.profile.spells then
+        local configured = TUI.db.profile.spells[listKey]
+        if type(configured) == "table" then
+            return configured
+        end
+    end
+
+    return {}
 end
 
 function TUI_CooldownFrame:GetCooldownIDs()
-    return self.cooldownList
+    return self.cooldownEntries
 end
 
 function TUI_CooldownFrame:RefreshData()

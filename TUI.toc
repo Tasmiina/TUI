@@ -27,5 +27,6 @@ Core/TUI_Config.lua
 Core/TUI_Profile.lua
 Core/TUI_Layout.lua
 Core/TUI_EditMode.lua
+Core/TUI_SpellPicker.lua
 
 TUI.lua
