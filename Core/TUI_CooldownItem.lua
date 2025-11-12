@@ -360,8 +360,6 @@ function TUI_CooldownItem:CheckCacheCooldownValuesFromCharges(timeNow)
 		self.cooldownPlayFlash = true;
 		self.cooldownPaused = false;
 
-        DevTool:AddData(spellChargeInfo, "SCI");
-
 		-- if spellChargeInfo.cooldownStartTime > 0 and spellChargeInfo.cooldownDuration > 0 and spellChargeInfo.currentCharges < spellChargeInfo.maxCharges then
 		-- 	local predictedChargeGainTime = spellChargeInfo.cooldownStartTime + spellChargeInfo.cooldownDuration;
 		-- 	if predictedChargeGainTime > timeNow then
