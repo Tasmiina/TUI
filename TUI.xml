@@ -4,7 +4,7 @@
 		<Size x="36" y="28"/>
 		<KeyValues>
 			<KeyValue key="cooldownFont" value="GameFontHighlightHugeOutline" type="string"/>
-			<KeyValue key="includeAsLayoutChildWhenHidden" value="true" type="boolean"/>
+			<KeyValue key="includeAsLayoutChildWhenHidden" value="false" type="boolean"/>
 		</KeyValues>
 		<Layers>
 			<Layer level="ARTWORK">

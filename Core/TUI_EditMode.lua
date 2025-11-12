@@ -800,9 +800,30 @@ function TUI_EditMode:SaveElementPosition(frame, configKey)
     
     -- Get current position
     local point, relativeTo, relativePoint, xOfs, yOfs = frame:GetPoint()
+    local anchorFrameName = "UIParent"
+    if relativeTo and relativeTo.GetName then
+        anchorFrameName = relativeTo:GetName() or anchorFrameName
+    end
+    local anchorConfigKey = TUI_EditMode:GetConfigKeyForFrame(relativeTo or frame)
+    if anchorConfigKey and TUI and TUI.cooldown_frame_configs then
+        for key, configName in pairs(TUI.cooldown_frame_configs) do
+            if configName == anchorConfigKey and TUI.cooldown_frames and relativeTo == TUI.cooldown_frames[key] then
+                anchorFrameName = relativeTo:GetName()
+                break
+            end
+        end
+    end
     
     -- Update database - preserve existing anchor settings, only update position
     local config = TUI.db.profile[configKey]
+    if not config then
+        config = {}
+        TUI.db.profile[configKey] = config
+    end
+    
+    config.anchor = point or config.anchor or "CENTER"
+    config.anchor_to = relativePoint or config.anchor_to or config.anchor or "CENTER"
+    config.anchor_frame = anchorFrameName or config.anchor_frame or "UIParent"
     if config then
         config.pos_x = xOfs
         config.pos_y = yOfs
