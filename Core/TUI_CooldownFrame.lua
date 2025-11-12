@@ -133,8 +133,43 @@ function TUI_CooldownFrame:RefreshLayout()
     self:GetItemContainerFrame():Layout();
 end
 
+-- https://warcraft.wiki.gg/wiki/API_C_Item.IsEquippedItem
+
 function TUI_CooldownFrame:GetCooldownIDs()
-    return {1226019, 1241285, 473728, 471306, 1234796, 198793};
+    return {
+        {
+            id = 1226019,
+            type = "spell"
+        },
+        {
+            id = 1241285,
+            type = "spell"
+        },
+        {
+            id = 473728,
+            type = "spell"
+        },
+        {
+            id = 471306,
+            type = "spell"
+        },
+        {
+            id = 1234796,
+            type = "spell"
+        },
+        {
+            id = 198793,
+            type = "spell"
+        },
+        {
+            id = 242402,
+            type = "item"
+        },
+        {
+            id = 132157,
+            type = "spell"
+        }
+    }
 end
 
 function TUI_CooldownFrame:RefreshData()
@@ -143,7 +178,7 @@ function TUI_CooldownFrame:RefreshData()
     for itemFrame in self.itemFramePool:EnumerateActive() do
         local cooldownID = cooldownIDs and cooldownIDs[itemFrame.layoutIndex];
         if cooldownID then
-            itemFrame:SetCooldownID(cooldownID);
+            itemFrame:SetCooldownID(cooldownID.id, cooldownID.type);
         else
             itemFrame:ClearCooldownID();
         end

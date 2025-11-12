@@ -123,9 +123,18 @@ function TUI_CooldownItem:OnCooldownIDCleared()
 	self:UpdateShownState();
 end
 
-function TUI_CooldownItem:SetCooldownID(cooldownID, forceSet)
+function TUI_CooldownItem:SetCooldownID(cooldownID, cooldownType, forceSet)
 	if forceSet or self.cooldownID ~= cooldownID then
-		self.cooldownID = cooldownID;
+
+		if cooldownType == "item" then
+			local _spellName, _spellID = C_Item.GetItemSpell(cooldownID);
+			self.cooldownID = _spellID;
+			self.itemID = cooldownID;
+		else
+			self.cooldownID = cooldownID;
+		end
+
+		self.cooldownType = cooldownType;
 		self:OnCooldownIDSet();
 	end
 end
@@ -245,14 +254,40 @@ function TUI_CooldownItem:RefreshSpellCooldownInfo()
 	end
 end
 
+function TUI_CooldownItem:CheckCacheCooldownValuesFromItem(timeNow)
+	local startTimeSeconds, durationSeconds, enableCooldownTimer = C_Item.GetItemCooldown(self.itemID);
+
+	if enableCooldownTimer then
+		self:AddVisualDataSource_Cooldown();
+		self.cooldownEnabled = true;
+		self.cooldownStartTime = startTimeSeconds;
+		self.cooldownDuration = durationSeconds;
+		self.cooldownModRate = 1;
+		self.cooldownSwipeColor = CooldownViewerConstants.ITEM_COOLDOWN_COLOR;
+		self.cooldownDesaturated = false;
+		self.cooldownShowDrawEdge = false;
+		self.cooldownShowSwipe = false;
+		self.cooldownUseAuraDisplayTime = false;
+		self.cooldownPlayFlash = false;
+		self.cooldownPaused = false;
+		self.cooldownIsActive = false;
+		self.allowOnCooldownAlert = false;
+		self.isOnActualCooldown = false;
+	end
+end
+
 function TUI_CooldownItem:CacheCooldownValues()
 	local timeNow = GetTime();
 
 	-- Cooldowns can be influenced by multiple sources, so check them all
 	-- But if any source performed an update, those functions might return early.
 	-- The state updates are in "rough" priority order and the call order here actually matters.
-	self:CheckCacheCooldownValuesFromCharges(timeNow);
-	self:CheckCacheCooldownValuesFromSpellCooldown(timeNow);
+	if self.cooldownType == "item" then
+		self:CheckCacheCooldownValuesFromItem(timeNow);
+	else
+		self:CheckCacheCooldownValuesFromCharges(timeNow);
+		self:CheckCacheCooldownValuesFromSpellCooldown(timeNow);
+	end
 
 	if not self:IsUsingVisualDataSource_Any() then
 		self.cooldownEnabled = false;
@@ -313,8 +348,6 @@ function TUI_CooldownItem:CheckCacheCooldownValuesFromSpellCooldown(timeNow)
 	if spellCooldownInfo and not self:HasVisualDataSource_Charges() then
 		self:AddVisualDataSource_Cooldown();
 
-        -- DevTool:AddData(spellCooldownInfo, "SCDI");
-
 		-- local endTime = spellCooldownInfo.startTime + spellCooldownInfo.duration;
 		-- self.cooldownIsActive = endTime > timeNow;
 		-- self.isOnGCD = spellCooldownInfo.isOnGCD;
@@ -370,14 +403,22 @@ function TUI_CooldownItem:CheckCacheCooldownValuesFromCharges(timeNow)
 end
 
 function TUI_CooldownItem:RefreshIconDesaturation()
-    self:GetIconTexture():SetDesaturated(not C_Spell.IsSpellUsable(self.cooldownID))
+	if self:GetSpellID() == nil then
+		return;
+	end
+
+    self:GetIconTexture():SetDesaturated(not C_Spell.IsSpellUsable(self:GetSpellID()))
 end
 
 function TUI_CooldownItem:RefreshIconColor()
+	if self:GetSpellID() == nil then
+		return;
+	end
+
     local iconTexture = self:GetIconTexture();
 	local outOfRangeTexture = self:GetOutOfRangeTexture();
 
-    local isUsable, notEnoughMana = C_Spell.IsSpellUsable(self.cooldownID);
+    local isUsable, notEnoughMana = C_Spell.IsSpellUsable(self:GetSpellID());
 
 	if self.spellOutOfRange == true then
 		iconTexture:SetVertexColor(CooldownViewerConstants.ITEM_NOT_IN_RANGE_COLOR:GetRGBA());
