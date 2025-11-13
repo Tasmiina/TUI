@@ -717,10 +717,6 @@ function TUI_SpellPicker:RemoveCooldownEntry(identifier, entryType)
 
     self:SetCooldownList(updatedList)
 
-    if TUI and TUI.RefreshConfig then
-        TUI:RefreshConfig()
-    end
-
     RefreshCooldownFramesForKey(listKey)
 
     self:RefreshSections()
@@ -754,10 +750,6 @@ function TUI_SpellPicker:AddCooldownEntry(identifier, entryType)
     })
 
     self:SetCooldownList(currentList)
-
-    if TUI and TUI.RefreshConfig then
-        TUI:RefreshConfig()
-    end
 
     RefreshCooldownFramesForKey(listKey)
 
@@ -797,10 +789,6 @@ function TUI_SpellPicker:MoveCooldownEntry(index, delta)
     table.insert(currentList, targetIndex, entry)
 
     self:SetCooldownList(currentList)
-
-    if TUI and TUI.RefreshConfig then
-        TUI:RefreshConfig()
-    end
 
     RefreshCooldownFramesForKey(self:GetSelectedCooldownListKey())
 
